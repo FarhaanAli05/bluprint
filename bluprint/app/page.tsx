@@ -7,80 +7,82 @@ import { buttonClasses } from "@/components/Button";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-slate-900">
+    <div className="flex min-h-screen flex-col bg-background text-slate-100">
       <SiteHeader />
       <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-slate-200/60">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_55%),radial-gradient(circle_at_top_right,rgba(14,116,144,0.12),transparent_50%)]" />
+        <section className="relative overflow-hidden border-b border-white/10 bg-slate-950 text-white">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.32),transparent_45%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.28),transparent_50%),radial-gradient(circle_at_bottom_left,rgba(30,41,59,0.9),transparent_60%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.7),rgba(15,23,42,0.95))]" />
           <Container className="relative py-16 lg:py-24">
             <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
               <div>
-                <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                  Your goals, blueprinted.
+                <span className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80">
+                  UofTHacks MVP
                 </span>
-                <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+                <h1 className="mt-4 text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
                   BluPrint
                 </h1>
-                <p className="mt-3 text-2xl font-medium text-slate-800">
-                  Design your room with intent.
+                <p className="mt-3 text-2xl font-medium text-white">
+                  Your goals, blueprinted.
                 </p>
-                <p className="mt-3 text-lg text-slate-600">
-                  Upload photos and visualize furniture placement in a clean,
-                  guided workspace.
+                <p className="mt-3 text-lg text-slate-200">
+                  Upload your room. Bring furniture in from the web. Preview a
+                  layout in minutes.
                 </p>
                 <div className="mt-8 flex flex-wrap items-center gap-4">
-                  <Link
-                    href="/upload"
-                    className={buttonClasses("primary", "md")}
-                  >
+                  <Link href="/upload" className={buttonClasses("primary", "md")}>
                     Start a Room
                   </Link>
-                  <Link
-                    href="/signin"
-                    className={buttonClasses("secondary", "md")}
-                  >
+                  <Link href="/signin" className={buttonClasses("secondary", "md")}>
                     Sign in
                   </Link>
                 </div>
-                <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-slate-500">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    No install needed
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-blue-500" />
-                    Works on desktop and mobile
-                  </div>
-                </div>
-              </div>
-              <Card className="p-6 shadow-lg">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-500">
-                      Project
-                    </p>
-                    <h3 className="text-lg font-semibold text-slate-900">
-                      Bedroom Project
-                    </h3>
-                    <p className="text-xs text-slate-500">Updated just now</p>
-                  </div>
-                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                    Synced
+                <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-slate-300">
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                    Fast
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                    No GPU server required
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                    Works in browser
                   </span>
                 </div>
+              </div>
+
+              <Card className="p-6 shadow-2xl bg-slate-900/80 border-white/10 text-white">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">
+                      Project
+                    </p>
+                    <h3 className="text-lg font-semibold text-white">
+                      Bedroom Project
+                    </h3>
+                    <p className="text-xs text-slate-400">Updated just now</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-white/80">
+                      AI
+                    </span>
+                    <span className="rounded-full border border-blue-400/40 bg-blue-500/20 px-2.5 py-1 text-xs font-semibold text-blue-100">
+                      Synced
+                    </span>
+                  </div>
+                </div>
                 <div className="mt-6 space-y-4">
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="rounded-xl border border-slate-700/70 bg-slate-900/60 p-4">
                     <div className="flex items-center justify-between text-sm">
-                      <p className="font-medium text-slate-700">Uploads</p>
-                      <p className="text-xs text-slate-500">4 files</p>
+                      <p className="font-medium text-slate-100">Uploads</p>
+                      <p className="text-xs text-slate-400">4 files</p>
                     </div>
-                    <div className="mt-3 space-y-3 text-xs text-slate-600">
+                    <div className="mt-3 space-y-3 text-xs text-slate-300">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span>Room-panorama.jpg</span>
                           <span>42%</span>
                         </div>
-                        <div className="h-1.5 w-full rounded-full bg-slate-200">
+                        <div className="h-1.5 w-full rounded-full bg-slate-800">
                           <div className="h-1.5 w-[42%] rounded-full bg-blue-600" />
                         </div>
                       </div>
@@ -89,20 +91,31 @@ export default function Home() {
                           <span>Corner-angle.png</span>
                           <span>Done</span>
                         </div>
-                        <div className="h-1.5 w-full rounded-full bg-slate-200">
-                          <div className="h-1.5 w-full rounded-full bg-emerald-500" />
+                        <div className="h-1.5 w-full rounded-full bg-slate-800">
+                          <div className="h-1.5 w-full rounded-full bg-blue-500" />
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-dashed border-slate-300 bg-white p-5">
-                    <p className="text-sm font-semibold text-slate-900">
+                  <div className="rounded-xl border border-dashed border-slate-600 bg-slate-950/40 p-5">
+                    <p className="text-sm font-semibold text-white">
                       3D Viewer
                     </p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-slate-400">
                       Coming soon — room model renders here.
                     </p>
-                    <div className="mt-4 h-28 rounded-lg bg-slate-100" />
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-slate-300">
+                        Auto-fit
+                      </span>
+                      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-slate-300">
+                        Snap grid
+                      </span>
+                      <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-slate-300">
+                        Furniture import
+                      </span>
+                    </div>
+                    <div className="mt-4 h-28 rounded-lg bg-slate-900/80" />
                   </div>
                 </div>
               </Card>
@@ -110,13 +123,13 @@ export default function Home() {
           </Container>
         </section>
 
-        <section id="how-it-works" className="py-16 lg:py-24">
+        <section id="how" className="py-16 lg:py-24">
           <Container>
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-semibold text-slate-900">
+              <h2 className="text-3xl font-semibold text-white">
                 How it works
               </h2>
-              <p className="mt-3 text-slate-600">
+              <p className="mt-3 text-slate-300">
                 A clean, guided flow from upload to visualization.
               </p>
             </div>
@@ -199,13 +212,13 @@ export default function Home() {
                 },
               ].map((step) => (
                 <Card key={step.title} className="p-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-blue-200">
                     {step.icon}
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold text-slate-900">
+                  <h3 className="mt-4 text-lg font-semibold text-white">
                     {step.title}
                   </h3>
-                  <p className="mt-2 text-sm text-slate-600">
+                  <p className="mt-2 text-sm text-slate-300">
                     {step.description}
                   </p>
                 </Card>
@@ -214,14 +227,14 @@ export default function Home() {
           </Container>
         </section>
 
-        <section id="features" className="border-t border-slate-200/70 py-16">
+        <section id="features" className="border-t border-white/10 py-16">
           <Container>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <h2 className="text-3xl font-semibold text-slate-900">
+                <h2 className="text-3xl font-semibold text-white">
                   Features built for focus
                 </h2>
-                <p className="mt-2 text-slate-600">
+                <p className="mt-2 text-slate-300">
                   Professional tools, kept intentionally lightweight.
                 </p>
               </div>
@@ -229,7 +242,7 @@ export default function Home() {
                 Start a Room
               </Link>
             </div>
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[
                 {
                   title: "Room presets",
@@ -247,17 +260,52 @@ export default function Home() {
                   title: "Share/export",
                   description: "Send boards to collaborators or export renders.",
                 },
+                {
+                  title: "Room history",
+                  description: "Track revisions and roll back to previous plans.",
+                },
+                {
+                  title: "Collaboration",
+                  description: "Invite your team to review and comment.",
+                },
               ].map((feature) => (
                 <Card key={feature.title} className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-900">
+                  <h3 className="text-lg font-semibold text-white">
                     {feature.title}
                   </h3>
-                  <p className="mt-2 text-sm text-slate-600">
+                  <p className="mt-2 text-sm text-slate-300">
                     {feature.description}
                   </p>
                 </Card>
               ))}
             </div>
+          </Container>
+        </section>
+
+        <section id="demo" className="py-16">
+          <Container>
+            <Card className="relative overflow-hidden p-10 text-center">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.18),transparent_60%)]" />
+              <div className="relative">
+                <p className="text-sm font-semibold uppercase tracking-wide text-blue-200">
+                  Ready to test BluPrint?
+                </p>
+                <h2 className="mt-3 text-3xl font-semibold text-white">
+                  Build your room in minutes
+                </h2>
+                <p className="mt-3 text-sm text-slate-300">
+                  Start with a few photos and see layout possibilities instantly.
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-4">
+                  <Link href="/upload" className={buttonClasses("primary", "md")}>
+                    Start a Room
+                  </Link>
+                  <Link href="/signin" className={buttonClasses("secondary", "md")}>
+                    Sign in
+                  </Link>
+                </div>
+              </div>
+            </Card>
           </Container>
         </section>
       </main>

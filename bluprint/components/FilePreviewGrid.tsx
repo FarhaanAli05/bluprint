@@ -21,8 +21,8 @@ export default function FilePreviewGrid({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-slate-900">Uploads</h3>
-        <p className="text-sm text-slate-500">
+        <h3 className="text-lg font-semibold text-white">Uploads</h3>
+        <p className="text-sm text-slate-400">
           {files.length} file{files.length !== 1 ? "s" : ""}
         </p>
       </div>
@@ -30,7 +30,7 @@ export default function FilePreviewGrid({
         {files.map((item, index) => (
           <div
             key={`${item.file.name}-${index}`}
-            className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-[0_18px_50px_rgba(2,6,23,0.35)]"
           >
             {item.preview && !isVideo(item.file.type) ? (
               <div className="aspect-square relative">
@@ -41,9 +41,9 @@ export default function FilePreviewGrid({
                 />
               </div>
             ) : (
-              <div className="aspect-square flex items-center justify-center bg-slate-100">
+              <div className="aspect-square flex items-center justify-center bg-slate-900/70">
                 <svg
-                  className="h-8 w-8 text-zinc-400"
+                  className="h-8 w-8 text-slate-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -58,16 +58,16 @@ export default function FilePreviewGrid({
               </div>
             )}
             <div className="p-3">
-              <p className="truncate text-xs font-semibold text-slate-900">
+              <p className="truncate text-xs font-semibold text-white">
                 {item.file.name}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-400">
                 {formatBytes(item.file.size)}
               </p>
             </div>
             <button
               onClick={() => onRemove(index)}
-              className="absolute right-2 top-2 rounded-full border border-white/80 bg-white/90 p-1.5 text-slate-600 opacity-0 shadow-sm transition-opacity hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 group-hover:opacity-100"
+              className="absolute right-2 top-2 rounded-full border border-white/20 bg-slate-900/80 p-1.5 text-slate-200 opacity-0 shadow-sm transition-opacity hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400 group-hover:opacity-100"
               aria-label={`Remove ${item.file.name}`}
             >
               <svg

@@ -26,10 +26,10 @@ export default function ProjectPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-screen flex-col bg-background text-slate-100">
         <SiteHeader />
         <main className="flex-1 flex items-center justify-center">
-          <p className="text-slate-500">Loading...</p>
+          <p className="text-slate-300">Loading...</p>
         </main>
         <Footer />
       </div>
@@ -38,14 +38,14 @@ export default function ProjectPage() {
 
   if (!project) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-screen flex-col bg-background text-slate-100">
         <SiteHeader />
         <main className="flex-1 flex items-center justify-center px-4">
           <div className="text-center">
-            <h1 className="text-2xl font-semibold text-slate-900">
+            <h1 className="text-2xl font-semibold text-white">
               Project not found
             </h1>
-            <p className="mt-2 text-slate-600">
+            <p className="mt-2 text-slate-300">
               The project you're looking for doesn't exist or has been deleted.
             </p>
             <Link
@@ -74,16 +74,16 @@ export default function ProjectPage() {
   const isVideo = (type: string) => type.startsWith("video/");
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-slate-900">
+    <div className="flex min-h-screen flex-col bg-background text-slate-100">
       <SiteHeader />
       <main className="flex-1 py-10 lg:py-14">
         <Container>
           <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold text-slate-900">
+              <h1 className="text-3xl font-semibold text-white">
                 {roomTypeLabel} Project
               </h1>
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-slate-400">
                 Created {new Date(project.createdAt).toLocaleDateString()}
               </p>
             </div>
@@ -103,7 +103,7 @@ export default function ProjectPage() {
           <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
             <Card className="p-8">
               <div className="text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-blue-200">
                   <svg
                     className="h-7 w-7"
                     fill="none"
@@ -118,22 +118,22 @@ export default function ProjectPage() {
                     />
                   </svg>
                 </div>
-                <h2 className="mt-4 text-xl font-semibold text-slate-900">
+                <h2 className="mt-4 text-xl font-semibold text-white">
                   3D Room Viewer
                 </h2>
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="mt-2 text-sm text-slate-300">
                   Coming soon — your interactive model will appear here.
                 </p>
-                <div className="mt-6 h-64 rounded-2xl border border-dashed border-slate-300 bg-slate-50" />
+                <div className="mt-6 h-64 rounded-2xl border border-dashed border-white/15 bg-slate-950/60" />
               </div>
             </Card>
 
             <Card className="p-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-900">
+                <h2 className="text-lg font-semibold text-white">
                   Uploads
                 </h2>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-400">
                   {project.files.length} file
                   {project.files.length !== 1 ? "s" : ""}
                 </p>
@@ -142,7 +142,7 @@ export default function ProjectPage() {
                 {project.files.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-3"
+                    className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/5 p-3"
                   >
                     {file.preview && !isVideo(file.type) ? (
                       <img
@@ -151,7 +151,7 @@ export default function ProjectPage() {
                         className="h-14 w-14 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-slate-900/70">
                         <svg
                           className="h-6 w-6 text-slate-400"
                           fill="none"
@@ -168,17 +168,17 @@ export default function ProjectPage() {
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-900">
+                      <p className="truncate text-sm font-semibold text-white">
                         {file.name}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-400">
                         {file.type} • {formatBytes(file.size)}
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-5 border-t border-slate-200 pt-4 text-sm text-slate-500">
+              <div className="mt-5 border-t border-white/10 pt-4 text-sm text-slate-400">
                 Total size: {formatBytes(totalSize)}
               </div>
             </Card>

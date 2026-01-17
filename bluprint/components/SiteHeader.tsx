@@ -4,27 +4,33 @@ import { buttonClasses } from "@/components/Button";
 
 export default function SiteHeader() {
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/70 backdrop-blur">
       <Container className="flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
           <Link
             href="/"
-            className="rounded-md text-lg font-semibold tracking-tight text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            className="rounded-md text-lg font-semibold tracking-tight text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
           >
             BluPrint
           </Link>
-          <nav className="hidden items-center gap-6 text-sm text-slate-600 md:flex">
+          <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
             <Link
-              href="/#how-it-works"
-              className="rounded-md hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+              href="/#how"
+              className="rounded-md hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
             >
               How it works
             </Link>
             <Link
               href="/#features"
-              className="rounded-md hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+              className="rounded-md hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
             >
               Features
+            </Link>
+            <Link
+              href="/#demo"
+              className="rounded-md hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
+            >
+              Demo
             </Link>
           </nav>
         </div>

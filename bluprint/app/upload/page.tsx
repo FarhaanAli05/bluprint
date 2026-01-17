@@ -79,18 +79,18 @@ export default function UploadPage() {
   const totalSize = files.reduce((sum, f) => sum + f.file.size, 0);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-slate-900">
+    <div className="flex min-h-screen flex-col bg-background text-slate-100">
       <SiteHeader />
-      <main className="flex-1 py-10 lg:py-14">
+      <main className="flex-1 py-12 lg:py-16">
         <Container>
           <div className="mb-8">
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
+            <p className="text-sm font-semibold uppercase tracking-wide text-blue-200">
               Create a room
             </p>
-            <h1 className="mt-2 text-3xl font-semibold text-slate-900">
+            <h1 className="mt-2 text-3xl font-semibold text-white">
               Start a new project
             </h1>
-            <p className="mt-2 text-slate-600">
+            <p className="mt-2 text-slate-300">
               Upload photos or video clips to begin your room blueprint.
             </p>
           </div>
@@ -99,18 +99,18 @@ export default function UploadPage() {
             <Card className="p-6">
               <label
                 htmlFor="room-type"
-                className="block text-sm font-semibold text-slate-900"
+                className="block text-sm font-semibold text-white"
               >
                 Room type
               </label>
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-slate-300">
                 More room presets are coming soon.
               </p>
               <select
                 id="room-type"
                 value={roomType}
                 onChange={(e) => setRoomType(e.target.value)}
-                className="mt-4 block w-full max-w-sm rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-4 block w-full max-w-sm rounded-2xl border border-white/15 bg-slate-950/70 px-3 py-2.5 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {ROOM_TYPES.map((type) => (
                   <option
@@ -142,7 +142,7 @@ export default function UploadPage() {
 
             <Card className="p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-sm text-slate-600">
+                <div className="text-sm text-slate-300">
                   {files.length} file{files.length !== 1 ? "s" : ""} selected
                   {files.length > 0 && (
                     <span className="ml-2 text-slate-400">

@@ -137,10 +137,10 @@ export default function UploadDropzone({
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`relative rounded-2xl border-2 border-dashed p-12 text-center transition-colors ${
+        className={`relative rounded-2xl border-2 border-dashed p-12 text-center transition-all ${
           isDragging
-            ? "border-blue-500 bg-blue-50"
-            : "border-slate-300 bg-slate-50"
+            ? "border-blue-400 bg-blue-500/10 shadow-[0_0_40px_rgba(59,130,246,0.35)]"
+            : "border-white/15 bg-white/5 hover:border-white/30 hover:bg-white/10"
         }`}
       >
         <input
@@ -153,11 +153,11 @@ export default function UploadDropzone({
         />
           <div className="space-y-4">
             <svg
-              className="mx-auto h-12 w-12 text-zinc-400"
-            stroke="currentColor"
-            fill="none"
-            viewBox="0 0 48 48"
-          >
+              className="mx-auto h-12 w-12 text-slate-300"
+              stroke="currentColor"
+              fill="none"
+              viewBox="0 0 48 48"
+            >
             <path
               d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
               strokeWidth={2}
@@ -166,10 +166,10 @@ export default function UploadDropzone({
             />
           </svg>
           <div>
-            <p className="text-lg font-semibold text-slate-900">
+            <p className="text-lg font-semibold text-white">
               Drag and drop your files here
             </p>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-slate-300">
               Upload JPG, PNG, WebP, or MP4 files to start your room project.
             </p>
             <Button
@@ -182,7 +182,7 @@ export default function UploadDropzone({
               Browse
             </Button>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-400">
             Images: JPG, PNG, WebP • Videos: MP4, MOV • Max {MAX_FILES} files,{" "}
             {formatBytes(MAX_TOTAL_SIZE)} total
           </p>
@@ -190,8 +190,8 @@ export default function UploadDropzone({
       </div>
 
       {error && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm text-amber-900">{error}</p>
+        <div className="rounded-xl border border-amber-200/40 bg-amber-500/10 p-4">
+          <p className="text-sm text-amber-100">{error}</p>
         </div>
       )}
     </div>
