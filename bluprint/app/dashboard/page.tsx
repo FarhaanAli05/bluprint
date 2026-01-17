@@ -21,6 +21,10 @@ import {
   ChefHat,
   Bath,
   Briefcase,
+  Wand2,
+  Sparkles,
+  Camera,
+  ArrowRight,
 } from "lucide-react";
 
 const roomTypeIcons: Record<Project["roomType"], React.ReactNode> = {
@@ -93,6 +97,49 @@ export default function DashboardPage() {
               New Project
             </Link>
           </div>
+
+          {/* AI Photo-to-3D Feature Banner */}
+          <Link href="/photo-to-3d" className="group mb-8 block">
+            <div className="relative overflow-hidden rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-cyan-600/20 p-6 transition-all hover:border-purple-400/50 hover:shadow-[0_24px_60px_rgba(139,92,246,0.25)]">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-500/10 via-transparent to-transparent" />
+              
+              <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500/30 to-blue-500/30 text-purple-300 ring-1 ring-purple-400/30">
+                    <Wand2 className="h-7 w-7" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-semibold text-white group-hover:text-purple-200">
+                        AI Photo-to-3D
+                      </h3>
+                      <span className="rounded-full bg-gradient-to-r from-purple-500 to-blue-500 px-2 py-0.5 text-xs font-semibold text-white">
+                        NEW
+                      </span>
+                    </div>
+                    <p className="mt-1 text-slate-300">
+                      Upload room photos and get an instant interactive 3D model
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-purple-300 group-hover:text-purple-200">
+                  <span className="text-sm font-medium">Try it now</span>
+                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </div>
+              </div>
+
+              <div className="relative mt-4 flex flex-wrap items-center gap-4 text-sm text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4 text-purple-400" />
+                  Claude AI vision
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Camera className="h-4 w-4 text-purple-400" />
+                  Any room photos
+                </span>
+              </div>
+            </div>
+          </Link>
 
           {loading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

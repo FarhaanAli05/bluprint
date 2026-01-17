@@ -381,8 +381,8 @@ function DeskWithHutch() {
         
         {/* Decorative items on hutch */}
         {/* Clock */}
-        <mesh position={[-0.8, 1.2, 0.2]}>
-          <cylinderGeometry args={[0.2, 0.2, 0.1, 16]} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh position={[-0.8, 1.2, 0.2]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.2, 0.2, 0.1, 16]} />
           <meshStandardMaterial color="#FFFFFF" />
         </mesh>
         
