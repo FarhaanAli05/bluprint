@@ -4,7 +4,10 @@
   "description": "Chrome extension for creating and importing 3D models",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run build:popup && npm run build:content",
+    "build:popup": "vite build",
+    "build:content": "BUILD_TARGET=content vite build",
+    "watch": "vite build --watch",
     "preview": "vite preview",
     "install-deps": "npm install"
   },
