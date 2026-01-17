@@ -66,6 +66,16 @@ export interface FurnitureItem {
 export interface PlacedFurniture extends FurnitureItem {
   position: { x: number; y: number; z: number };
   rotation: number; // Y-axis rotation in radians
+  // AI-generated furniture properties
+  furnitureType?: string;
+  material?: "wood" | "metal" | "fabric" | "leather" | "plastic";
+  details?: {
+    woodFinish?: "light" | "medium" | "dark";
+    hasDrawers?: boolean;
+    hasShelves?: boolean;
+    numberOfDrawers?: number;
+    numberOfShelves?: number;
+  };
 }
 
 // Room configuration

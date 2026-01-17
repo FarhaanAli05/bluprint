@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef, useMemo } from "react";
+import { Suspense, useRef, useMemo, useEffect, useState } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import {
   OrbitControls,
@@ -11,6 +11,7 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import type { Dimensions, Materials, PlacedFurniture, CameraMode } from "@/types/room.types";
+import { createFurnitureFromSpec, type AIFurnitureItem } from "@/lib/furnitureFactory";
 
 interface RoomViewerProps {
   dimensions: Dimensions;
@@ -208,7 +209,103 @@ function Measurements({
   );
 }
 
-// Furniture placeholder mesh
+// AI Furniture mesh using furniture factory
+function AIFurnitureMesh({
+  item,
+  isSelected,
+  onClick,
+  roomDimensions,
+}: {
+  item: PlacedFurniture;
+  isSelected: boolean;
+  onClick: () => void;
+  roomDimensions: { length: number; width: number };
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [furnitureGroup, setFurnitureGroup] = useState<THREE.Group | null>(null);
+
+  // Create the furniture geometry
+  useEffect(() => {
+    const aiItem: AIFurnitureItem = {
+      id: item.id,
+      name: item.name,
+      modelUrl: "",
+      position: [item.position.x, item.position.y, item.position.z],
+      rotation: [0, item.rotation, 0],
+      scale: [1, 1, 1],
+      color: item.color,
+      dimensions: item.dimensions,
+      furnitureType: item.furnitureType || item.category,
+      material: item.material,
+      details: item.details,
+    };
+    
+    const group = createFurnitureFromSpec(aiItem);
+    setFurnitureGroup(group);
+
+    return () => {
+      // Cleanup
+      group.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry.dispose();
+          if (Array.isArray(child.material)) {
+            child.material.forEach((m) => m.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      });
+    };
+  }, [item]);
+
+  // Animate selection
+  useFrame(() => {
+    if (groupRef.current && isSelected) {
+      groupRef.current.position.y = Math.sin(Date.now() * 0.003) * 0.05;
+    } else if (groupRef.current) {
+      groupRef.current.position.y = 0;
+    }
+  });
+
+  if (!furnitureGroup) return null;
+
+  // Calculate position relative to room center
+  const posX = item.position.x - roomDimensions.length / 2;
+  const posZ = item.position.z - roomDimensions.width / 2;
+
+  return (
+    <group
+      ref={groupRef}
+      position={[posX, 0, posZ]}
+      rotation={[0, item.rotation, 0]}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+    >
+      <primitive object={furnitureGroup} />
+      {isSelected && (
+        <mesh position={[0, item.dimensions.height / 2, 0]}>
+          <boxGeometry
+            args={[
+              item.dimensions.width + 0.2,
+              item.dimensions.height + 0.2,
+              item.dimensions.depth + 0.2,
+            ]}
+          />
+          <meshBasicMaterial
+            color="#3b82f6"
+            transparent
+            opacity={0.2}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+// Basic furniture placeholder mesh (for non-AI furniture)
 function FurnitureMesh({
   item,
   isSelected,
@@ -374,14 +471,28 @@ export default function RoomViewer({
           <Measurements dimensions={dimensions} show={showMeasurements} />
 
           {/* Furniture */}
-          {furniture.map((item) => (
-            <FurnitureMesh
-              key={item.id}
-              item={item}
-              isSelected={selectedFurnitureId === item.id}
-              onClick={() => onFurnitureSelect(item.id)}
-            />
-          ))}
+          {furniture.map((item) => {
+            // Use AI furniture mesh for items with furnitureType
+            if (item.furnitureType) {
+              return (
+                <AIFurnitureMesh
+                  key={item.id}
+                  item={item}
+                  isSelected={selectedFurnitureId === item.id}
+                  onClick={() => onFurnitureSelect(item.id)}
+                  roomDimensions={{ length, width }}
+                />
+              );
+            }
+            return (
+              <FurnitureMesh
+                key={item.id}
+                item={item}
+                isSelected={selectedFurnitureId === item.id}
+                onClick={() => onFurnitureSelect(item.id)}
+              />
+            );
+          })}
 
           {/* Environment lighting */}
           <Environment preset="apartment" />
