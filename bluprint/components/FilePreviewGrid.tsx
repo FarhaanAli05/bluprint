@@ -20,12 +20,17 @@ export default function FilePreviewGrid({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-foreground">Uploaded Files</h3>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-slate-900">Uploads</h3>
+        <p className="text-sm text-slate-500">
+          {files.length} file{files.length !== 1 ? "s" : ""}
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {files.map((item, index) => (
           <div
             key={`${item.file.name}-${index}`}
-            className="group relative rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black overflow-hidden"
+            className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
           >
             {item.preview && !isVideo(item.file.type) ? (
               <div className="aspect-square relative">
@@ -36,7 +41,7 @@ export default function FilePreviewGrid({
                 />
               </div>
             ) : (
-              <div className="aspect-square flex items-center justify-center bg-zinc-100 dark:bg-zinc-900">
+              <div className="aspect-square flex items-center justify-center bg-slate-100">
                 <svg
                   className="h-8 w-8 text-zinc-400"
                   fill="none"
@@ -52,17 +57,17 @@ export default function FilePreviewGrid({
                 </svg>
               </div>
             )}
-            <div className="p-2">
-              <p className="truncate text-xs font-medium text-foreground">
+            <div className="p-3">
+              <p className="truncate text-xs font-semibold text-slate-900">
                 {item.file.name}
               </p>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+              <p className="text-xs text-slate-500">
                 {formatBytes(item.file.size)}
               </p>
             </div>
             <button
               onClick={() => onRemove(index)}
-              className="absolute top-2 right-2 rounded-full bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
+              className="absolute right-2 top-2 rounded-full border border-white/80 bg-white/90 p-1.5 text-slate-600 opacity-0 shadow-sm transition-opacity hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 group-hover:opacity-100"
               aria-label={`Remove ${item.file.name}`}
             >
               <svg

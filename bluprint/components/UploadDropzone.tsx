@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import { formatBytes } from "@/lib/utils";
+import Button from "@/components/Button";
 
 const MAX_FILES = 20;
 const MAX_TOTAL_SIZE = 200 * 1024 * 1024; // 200MB in bytes
@@ -130,18 +131,16 @@ export default function UploadDropzone({
     setIsDragging(false);
   };
 
-  const totalSize = files.reduce((sum, f) => sum + f.file.size, 0);
-
   return (
     <div className="space-y-4">
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`relative rounded-lg border-2 border-dashed p-12 text-center transition-colors ${
+        className={`relative rounded-2xl border-2 border-dashed p-12 text-center transition-colors ${
           isDragging
-            ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
-            : "border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50"
+            ? "border-blue-500 bg-blue-50"
+            : "border-slate-300 bg-slate-50"
         }`}
       >
         <input
@@ -152,9 +151,9 @@ export default function UploadDropzone({
           onChange={handleFileInput}
           className="hidden"
         />
-        <div className="space-y-4">
-          <svg
-            className="mx-auto h-12 w-12 text-zinc-400"
+          <div className="space-y-4">
+            <svg
+              className="mx-auto h-12 w-12 text-zinc-400"
             stroke="currentColor"
             fill="none"
             viewBox="0 0 48 48"
@@ -167,42 +166,32 @@ export default function UploadDropzone({
             />
           </svg>
           <div>
-            <p className="text-lg font-medium text-foreground">
+            <p className="text-lg font-semibold text-slate-900">
               Drag and drop your files here
             </p>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              or
+            <p className="mt-2 text-sm text-slate-600">
+              Upload JPG, PNG, WebP, or MP4 files to start your room project.
             </p>
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
+              className="mt-4"
               onClick={() => fileInputRef.current?.click()}
-              className="mt-2 inline-flex items-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 transition-colors"
             >
-              Browse files
-            </button>
+              Browse
+            </Button>
           </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-500">
-            Images: JPG, PNG, WebP • Videos: MP4, MOV • Max {MAX_FILES} files, {formatBytes(MAX_TOTAL_SIZE)} total
+          <p className="text-xs text-slate-500">
+            Images: JPG, PNG, WebP • Videos: MP4, MOV • Max {MAX_FILES} files,{" "}
+            {formatBytes(MAX_TOTAL_SIZE)} total
           </p>
         </div>
       </div>
 
-      {files.length > 0 && (
-        <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black p-4">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-foreground">
-              {files.length} file{files.length !== 1 ? "s" : ""} selected
-            </span>
-            <span className="text-zinc-600 dark:text-zinc-400">
-              Total size: {formatBytes(totalSize)}
-            </span>
-          </div>
-        </div>
-      )}
-
       {error && (
-        <div className="rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/20 p-4">
-          <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <p className="text-sm text-amber-900">{error}</p>
         </div>
       )}
     </div>

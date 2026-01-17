@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
+import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
+import Container from "@/components/Container";
+import Card from "@/components/Card";
+import { buttonClasses } from "@/components/Button";
 import { projectStorage, formatBytes, type Project } from "@/lib/utils";
 
 export default function ProjectPage() {
   const params = useParams();
-  const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -25,9 +27,9 @@ export default function ProjectPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
-        <Navbar />
+        <SiteHeader />
         <main className="flex-1 flex items-center justify-center">
-          <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
+          <p className="text-slate-500">Loading...</p>
         </main>
         <Footer />
       </div>
@@ -37,16 +39,18 @@ export default function ProjectPage() {
   if (!project) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
-        <Navbar />
+        <SiteHeader />
         <main className="flex-1 flex items-center justify-center px-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground">Project not found</h1>
-            <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+            <h1 className="text-2xl font-semibold text-slate-900">
+              Project not found
+            </h1>
+            <p className="mt-2 text-slate-600">
               The project you're looking for doesn't exist or has been deleted.
             </p>
             <Link
               href="/"
-              className="mt-4 inline-block rounded-md bg-foreground px-6 py-3 text-sm font-semibold text-background hover:bg-foreground/90 transition-colors"
+              className={`mt-4 ${buttonClasses("primary", "sm")}`}
             >
               Back to Home
             </Link>
@@ -70,67 +74,86 @@ export default function ProjectPage() {
   const isVideo = (type: string) => type.startsWith("video/");
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">
-            {roomTypeLabel} Project
-          </h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Created {new Date(project.createdAt).toLocaleDateString()}
-          </p>
-        </div>
+    <div className="flex min-h-screen flex-col bg-background text-slate-900">
+      <SiteHeader />
+      <main className="flex-1 py-10 lg:py-14">
+        <Container>
+          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-semibold text-slate-900">
+                {roomTypeLabel} Project
+              </h1>
+              <p className="mt-2 text-sm text-slate-500">
+                Created {new Date(project.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/upload"
+                className={buttonClasses("secondary", "sm")}
+              >
+                Upload more
+              </Link>
+              <Link href="/" className={buttonClasses("ghost", "sm")}>
+                Back to Home
+              </Link>
+            </div>
+          </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* 3D Viewer Placeholder */}
-            <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black p-12">
+          <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+            <Card className="p-8">
               <div className="text-center">
-                <svg
-                  className="mx-auto h-16 w-16 text-zinc-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                  />
-                </svg>
-                <h2 className="mt-4 text-xl font-semibold text-foreground">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                  <svg
+                    className="h-7 w-7"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                </div>
+                <h2 className="mt-4 text-xl font-semibold text-slate-900">
                   3D Room Viewer
                 </h2>
-                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                  Coming soon — 3D visualization will appear here
+                <p className="mt-2 text-sm text-slate-600">
+                  Coming soon — your interactive model will appear here.
+                </p>
+                <div className="mt-6 h-64 rounded-2xl border border-dashed border-slate-300 bg-slate-50" />
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Uploads
+                </h2>
+                <p className="text-sm text-slate-500">
+                  {project.files.length} file
+                  {project.files.length !== 1 ? "s" : ""}
                 </p>
               </div>
-            </div>
-
-            {/* File List */}
-            <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-4">
-                Uploaded Files ({project.files.length})
-              </h2>
-              <div className="space-y-4">
+              <div className="mt-5 space-y-4">
                 {project.files.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-4 rounded-md border border-zinc-200 dark:border-zinc-800 p-4"
+                    className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-3"
                   >
                     {file.preview && !isVideo(file.type) ? (
                       <img
                         src={file.preview}
                         alt={file.name}
-                        className="h-16 w-16 rounded object-cover"
+                        className="h-14 w-14 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="flex h-16 w-16 items-center justify-center rounded bg-zinc-100 dark:bg-zinc-900">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100">
                         <svg
-                          className="h-8 w-8 text-zinc-400"
+                          className="h-6 w-6 text-slate-400"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -144,41 +167,23 @@ export default function ProjectPage() {
                         </svg>
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-slate-900">
                         {file.name}
                       </p>
-                      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                      <p className="text-xs text-slate-500">
                         {file.type} • {formatBytes(file.size)}
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Total size: {formatBytes(totalSize)}
-                </p>
+              <div className="mt-5 border-t border-slate-200 pt-4 text-sm text-slate-500">
+                Total size: {formatBytes(totalSize)}
               </div>
-            </div>
+            </Card>
           </div>
-
-          {/* Sidebar Actions */}
-          <div className="space-y-4">
-            <Link
-              href="/upload"
-              className="block w-full rounded-md bg-foreground px-4 py-3 text-center text-sm font-semibold text-background hover:bg-foreground/90 transition-colors"
-            >
-              Upload More
-            </Link>
-            <Link
-              href="/"
-              className="block w-full rounded-md border border-zinc-300 dark:border-zinc-700 px-4 py-3 text-center text-sm font-semibold text-foreground hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
-            >
-              Back to Home
-            </Link>
-          </div>
-        </div>
+        </Container>
       </main>
       <Footer />
     </div>

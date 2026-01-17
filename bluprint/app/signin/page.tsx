@@ -1,67 +1,73 @@
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
+import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
+import Container from "@/components/Container";
+import Card from "@/components/Card";
+import Button from "@/components/Button";
 
 export default function SignInPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
-      <main className="flex-1 flex items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md space-y-8 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black p-8">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Authentication coming soon — placeholder page
-            </p>
-          </div>
-          <div className="space-y-4">
+    <div className="flex min-h-screen flex-col bg-background text-slate-900">
+      <SiteHeader />
+      <main className="flex-1 py-12 lg:py-16">
+        <Container className="flex justify-center">
+          <Card className="w-full max-w-md p-8">
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-foreground"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                disabled
-                className="mt-1 block w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-black px-3 py-2 text-sm text-foreground placeholder-zinc-400 focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="email@example.com"
-              />
+              <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
+                Sign in
+              </p>
+              <h1 className="mt-2 text-2xl font-semibold text-slate-900">
+                Welcome back
+              </h1>
+              <p className="mt-2 text-sm text-slate-600">
+                Authentication is coming soon. This is a placeholder UI.
+              </p>
             </div>
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-foreground"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                disabled
-                className="mt-1 block w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-black px-3 py-2 text-sm text-foreground placeholder-zinc-400 focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="••••••••"
-              />
+            <div className="mt-6 space-y-4">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold text-slate-900"
+                >
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  disabled
+                  className="mt-2 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold text-slate-900"
+                >
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  disabled
+                  className="mt-2 block w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="••••••••"
+                />
+              </div>
+              <Button type="button" disabled className="w-full">
+                Continue
+              </Button>
             </div>
-            <button
-              type="button"
-              disabled
-              className="w-full rounded-md bg-foreground px-4 py-2 text-sm font-semibold text-background hover:bg-foreground/90 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Continue
-            </button>
-          </div>
-          <div className="text-center">
-            <Link
-              href="/"
-              className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-foreground transition-colors"
-            >
-              ← Back to home
-            </Link>
-          </div>
-        </div>
+            <div className="mt-6 text-center">
+              <Link
+                href="/"
+                className="rounded-md text-sm text-slate-500 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+              >
+                Back to home
+              </Link>
+            </div>
+          </Card>
+        </Container>
       </main>
       <Footer />
     </div>

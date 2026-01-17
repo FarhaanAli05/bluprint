@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bluprint — Cursor for Interior Design",
+  title: "BluPrint — Your goals, blueprinted.",
   description: "Upload your room → visualize furniture placements in 3D",
 };
 

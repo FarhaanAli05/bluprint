@@ -3,10 +3,13 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
+import SiteHeader from "@/components/SiteHeader";
 import Footer from "@/components/Footer";
 import UploadDropzone, { FileWithPreview } from "@/components/UploadDropzone";
 import FilePreviewGrid from "@/components/FilePreviewGrid";
+import Container from "@/components/Container";
+import Card from "@/components/Card";
+import Button, { buttonClasses } from "@/components/Button";
 import { projectStorage, formatBytes } from "@/lib/utils";
 
 const ROOM_TYPES = [
@@ -73,78 +76,97 @@ export default function UploadPage() {
     }
   }, [files, roomType, router]);
 
-  return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
-      <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Create a Room Project</h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            Upload photos or videos of your room to get started
-          </p>
-        </div>
+  const totalSize = files.reduce((sum, f) => sum + f.file.size, 0);
 
-        <div className="space-y-8">
-          {/* Room Type Selector */}
-          <div>
-            <label
-              htmlFor="room-type"
-              className="block text-sm font-medium text-foreground mb-2"
-            >
-              Room Type
-            </label>
-            <select
-              id="room-type"
-              value={roomType}
-              onChange={(e) => setRoomType(e.target.value)}
-              className="block w-full max-w-xs rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-black px-3 py-2 text-sm text-foreground focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {ROOM_TYPES.map((type) => (
-                <option
-                  key={type.value}
-                  value={type.value}
-                  disabled={!type.enabled}
-                >
-                  {type.label}
-                  {type.comingSoon ? " (Coming soon)" : ""}
-                </option>
-              ))}
-            </select>
+  return (
+    <div className="flex min-h-screen flex-col bg-background text-slate-900">
+      <SiteHeader />
+      <main className="flex-1 py-10 lg:py-14">
+        <Container>
+          <div className="mb-8">
+            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
+              Create a room
+            </p>
+            <h1 className="mt-2 text-3xl font-semibold text-slate-900">
+              Start a new project
+            </h1>
+            <p className="mt-2 text-slate-600">
+              Upload photos or video clips to begin your room blueprint.
+            </p>
           </div>
 
-          {/* Upload Dropzone */}
-          <UploadDropzone
-            files={files}
-            onFilesChange={handleFilesChange}
-            error={error}
-            onError={handleError}
-          />
-
-          {/* File Preview Grid */}
-          {files.length > 0 && (
-            <FilePreviewGrid files={files} onRemove={handleRemove} />
-          )}
-
-          {/* Create Project Button */}
-          {files.length > 0 && (
-            <div className="flex items-center gap-4 pt-4">
-              <button
-                type="button"
-                onClick={handleCreateProject}
-                disabled={isCreating || files.length === 0}
-                className="rounded-md bg-foreground px-6 py-3 text-sm font-semibold text-background hover:bg-foreground/90 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          <div className="space-y-8">
+            <Card className="p-6">
+              <label
+                htmlFor="room-type"
+                className="block text-sm font-semibold text-slate-900"
               >
-                {isCreating ? "Creating..." : "Create Project"}
-              </button>
-              <Link
-                href="/"
-                className="rounded-md border border-zinc-300 dark:border-zinc-700 px-6 py-3 text-sm font-semibold text-foreground hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                Room type
+              </label>
+              <p className="mt-1 text-sm text-slate-600">
+                More room presets are coming soon.
+              </p>
+              <select
+                id="room-type"
+                value={roomType}
+                onChange={(e) => setRoomType(e.target.value)}
+                className="mt-4 block w-full max-w-sm rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Cancel
-              </Link>
-            </div>
-          )}
-        </div>
+                {ROOM_TYPES.map((type) => (
+                  <option
+                    key={type.value}
+                    value={type.value}
+                    disabled={!type.enabled}
+                  >
+                    {type.label}
+                    {type.comingSoon ? " (Coming soon)" : ""}
+                  </option>
+                ))}
+              </select>
+            </Card>
+
+            <Card className="p-6">
+              <UploadDropzone
+                files={files}
+                onFilesChange={handleFilesChange}
+                error={error}
+                onError={handleError}
+              />
+            </Card>
+
+            {files.length > 0 && (
+              <Card className="p-6">
+                <FilePreviewGrid files={files} onRemove={handleRemove} />
+              </Card>
+            )}
+
+            <Card className="p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-slate-600">
+                  {files.length} file{files.length !== 1 ? "s" : ""} selected
+                  {files.length > 0 && (
+                    <span className="ml-2 text-slate-400">
+                      • {formatBytes(totalSize)} total
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link href="/" className={buttonClasses("ghost", "sm")}>
+                    Back to Home
+                  </Link>
+                  <Button
+                    type="button"
+                    onClick={handleCreateProject}
+                    disabled={isCreating || files.length === 0}
+                    size="sm"
+                  >
+                    {isCreating ? "Creating..." : "Create Project"}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </Container>
       </main>
       <Footer />
     </div>

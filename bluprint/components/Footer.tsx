@@ -1,9 +1,9 @@
 export default function Footer() {
   return (
-    <footer className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black mt-auto">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
-          MVP demo — Made for hackathon • Bluprint: Cursor for interior design
+    <footer className="border-t border-slate-200 bg-white">
+      <div className="mx-auto max-w-[1200px] px-6 py-8 text-sm text-slate-500 sm:px-8">
+        <p className="text-center">
+          BluPrint — UofTHacks demo. Prototype UI only; features are in progress.
         </p>
       </div>
     </footer>
