@@ -30,7 +30,7 @@ export default function Home() {
                   layout in minutes.
                 </p>
                 <div className="mt-8 flex flex-wrap items-center gap-4">
-                  <Link href="/upload" className={buttonClasses("primary", "md")}>
+                  <Link href="/create" className={buttonClasses("primary", "md")}>
                     Start a Room
                   </Link>
                   <Link href="/signin" className={buttonClasses("secondary", "md")}>
@@ -238,7 +238,7 @@ export default function Home() {
                   Professional tools, kept intentionally lightweight.
                 </p>
               </div>
-              <Link href="/upload" className={buttonClasses("secondary", "md")}>
+              <Link href="/create" className={buttonClasses("secondary", "md")}>
                 Start a Room
               </Link>
             </div>
@@ -297,7 +297,7 @@ export default function Home() {
                   Start with a few photos and see layout possibilities instantly.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-4">
-                  <Link href="/upload" className={buttonClasses("primary", "md")}>
+                  <Link href="/create" className={buttonClasses("primary", "md")}>
                     Start a Room
                   </Link>
                   <Link href="/signin" className={buttonClasses("secondary", "md")}>

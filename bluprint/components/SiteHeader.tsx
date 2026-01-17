@@ -15,6 +15,12 @@ export default function SiteHeader() {
           </Link>
           <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
             <Link
+              href="/dashboard"
+              className="rounded-md hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
+            >
+              My Projects
+            </Link>
+            <Link
               href="/#how"
               className="rounded-md hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
             >
@@ -26,19 +32,13 @@ export default function SiteHeader() {
             >
               Features
             </Link>
-            <Link
-              href="/#demo"
-              className="rounded-md hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
-            >
-              Demo
-            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/signin" className={buttonClasses("ghost", "sm")}>
             Sign in
           </Link>
-          <Link href="/upload" className={buttonClasses("primary", "sm")}>
+          <Link href="/create" className={buttonClasses("primary", "sm")}>
             Start a Room
           </Link>
         </div>
