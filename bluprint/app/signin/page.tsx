@@ -7,7 +7,7 @@ import Button from "@/components/Button";
 
 export default function SignInPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-slate-100">
+    <div className="flex min-h-screen flex-col text-slate-100">
       <SiteHeader />
       <main className="flex-1 py-12 lg:py-16">
         <Container className="flex justify-center">

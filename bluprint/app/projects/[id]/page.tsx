@@ -26,7 +26,7 @@ export default function ProjectPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col bg-background text-slate-100">
+      <div className="flex min-h-screen flex-col text-slate-100">
         <SiteHeader />
         <main className="flex-1 flex items-center justify-center">
           <p className="text-slate-300">Loading...</p>
@@ -38,7 +38,7 @@ export default function ProjectPage() {
 
   if (!project) {
     return (
-      <div className="flex min-h-screen flex-col bg-background text-slate-100">
+      <div className="flex min-h-screen flex-col text-slate-100">
         <SiteHeader />
         <main className="flex-1 flex items-center justify-center px-4">
           <div className="text-center">

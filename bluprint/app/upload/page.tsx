@@ -79,7 +79,7 @@ export default function UploadPage() {
   const totalSize = files.reduce((sum, f) => sum + f.file.size, 0);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-slate-100">
+    <div className="flex min-h-screen flex-col text-slate-100">
       <SiteHeader />
       <main className="flex-1 py-12 lg:py-16">
         <Container>
