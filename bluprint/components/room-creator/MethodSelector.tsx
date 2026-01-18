@@ -33,7 +33,7 @@ export default function MethodSelector({ onSelect }: MethodSelectorProps) {
             </h3>
             
             <p className="mt-2 text-slate-300">
-              Upload 2-5 photos of your room and let Claude AI analyze the space, detect furniture, and automatically generate an accurate 3D model.
+              Upload 2-5 photos of your room and let Gemini 2.5 Pro analyze the space, detect furniture, and automatically generate an accurate 3D model.
             </p>
             
             <div className="mt-6 grid grid-cols-2 gap-4">

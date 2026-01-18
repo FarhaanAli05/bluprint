@@ -44,7 +44,7 @@ export default function AIRoomGeneratorPage() {
     }
 
     if (!apiKey.trim()) {
-      setError("Please enter your Anthropic API key");
+      setError("Please enter your Google AI API key");
       return;
     }
 
@@ -169,15 +169,15 @@ export default function AIRoomGeneratorPage() {
           {/* API Key Section */}
           <Card className="mb-6 p-6">
             <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-300">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-500/20 text-blue-300">
                 <Key className="h-5 w-5" />
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-white">
-                  Anthropic API Key
+                  Google AI API Key
                 </h3>
                 <p className="mt-1 text-sm text-slate-400">
-                  Required for AI room analysis. Your key is never stored and only used for this request.
+                  Required for Gemini 2.5 Pro room analysis. Your key is never stored and only used for this request.
                 </p>
                 <div className="mt-4 flex gap-2">
                   <div className="relative flex-1">
@@ -185,7 +185,7 @@ export default function AIRoomGeneratorPage() {
                       type={showApiKey ? "text" : "password"}
                       value={apiKey}
                       onChange={(e) => setApiKey(e.target.value)}
-                      placeholder="sk-ant-api..."
+                      placeholder="AIza..."
                       className="w-full rounded-xl border border-white/15 bg-slate-950/70 px-4 py-3 pr-12 text-white placeholder-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
                     />
                     <button
@@ -204,12 +204,12 @@ export default function AIRoomGeneratorPage() {
                 <p className="mt-2 text-xs text-slate-500">
                   Get your API key from{" "}
                   <a
-                    href="https://console.anthropic.com/settings/keys"
+                    href="https://aistudio.google.com/apikey"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-400 hover:underline"
                   >
-                    console.anthropic.com
+                    aistudio.google.com/apikey
                   </a>
                 </p>
               </div>

@@ -160,7 +160,7 @@ async function convertToBase64(file: File): Promise<string> {
   });
 }
 
-function getMediaType(file: File): "image/jpeg" | "image/png" | "image/gif" | "image/webp" {
+function getMediaType(file: File): string {
   const type = file.type.toLowerCase();
   if (type === "image/png") return "image/png";
   if (type === "image/gif") return "image/gif";
@@ -180,15 +180,13 @@ export async function analyzeRoomFromPhotos(
     throw new Error("At least one image is required");
   }
 
-  // Convert images to base64
-  const imageContents = await Promise.all(
+  // Convert images to Gemini format (inline_data)
+  const imageParts = await Promise.all(
     imageFiles.map(async (file) => {
       const base64 = await convertToBase64(file);
       return {
-        type: "image" as const,
-        source: {
-          type: "base64" as const,
-          media_type: getMediaType(file),
+        inline_data: {
+          mime_type: getMediaType(file),
           data: base64,
         },
       };
@@ -196,31 +194,34 @@ export async function analyzeRoomFromPhotos(
   );
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-        "anthropic-dangerous-direct-browser-access": "true",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 4000,
-        messages: [
-          {
-            role: "user",
-            content: [
-              ...imageContents,
-              {
-                type: "text",
-                text: ANALYSIS_PROMPT,
-              },
-            ],
+    // Use Gemini 2.5 Pro API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-05-06:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                ...imageParts,
+                {
+                  text: ANALYSIS_PROMPT,
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.4,
+            topK: 32,
+            topP: 1,
+            maxOutputTokens: 4096,
           },
-        ],
-      }),
-    });
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -231,8 +232,13 @@ export async function analyzeRoomFromPhotos(
 
     const data = await response.json();
 
-    // Extract text from response
-    const textContent = data.content?.find((c: { type: string }) => c.type === "text")?.text || "";
+    // Extract text from Gemini response
+    const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    if (!textContent) {
+      console.error("Empty response from Gemini:", data);
+      throw new Error("No response received from AI");
+    }
 
     // Remove markdown code blocks if present
     let jsonText = textContent.trim();

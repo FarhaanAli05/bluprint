@@ -15,7 +15,7 @@ const STEPS = [
     icon: Camera,
   },
   {
-    label: "AI analyzing room layout",
+    label: "Gemini analyzing room layout",
     description: "Detecting walls, floor, and room dimensions",
     icon: Brain,
   },
