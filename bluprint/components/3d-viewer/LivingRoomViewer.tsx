@@ -317,11 +317,35 @@ function Baseboards() {
 // STONE FIREPLACE (Main Feature)
 // ============================================================
 
+// Pre-computed static tile data to prevent re-randomization on render
+const FIREPLACE_TILES = [
+  { yOffset: 0.12, zOffset: 0.18, height: 0.52, width: 0.78, variant: 'mixed' as const },
+  { yOffset: 0.08, zOffset: 0.24, height: 0.65, width: 0.92, variant: 'primary' as const },
+  { yOffset: 0.15, zOffset: 0.11, height: 0.48, width: 0.68, variant: 'primary' as const },
+  { yOffset: 0.05, zOffset: 0.28, height: 0.58, width: 0.85, variant: 'mixed' as const },
+  { yOffset: 0.18, zOffset: 0.06, height: 0.42, width: 0.72, variant: 'primary' as const },
+  { yOffset: 0.02, zOffset: 0.22, height: 0.61, width: 0.88, variant: 'mixed' as const },
+  { yOffset: 0.14, zOffset: 0.15, height: 0.55, width: 0.76, variant: 'primary' as const },
+  { yOffset: 0.09, zOffset: 0.19, height: 0.49, width: 0.82, variant: 'mixed' as const },
+  { yOffset: 0.16, zOffset: 0.08, height: 0.63, width: 0.71, variant: 'primary' as const },
+  { yOffset: 0.03, zOffset: 0.26, height: 0.44, width: 0.95, variant: 'mixed' as const },
+  { yOffset: 0.11, zOffset: 0.13, height: 0.57, width: 0.69, variant: 'primary' as const },
+  { yOffset: 0.07, zOffset: 0.21, height: 0.51, width: 0.84, variant: 'mixed' as const },
+  { yOffset: 0.19, zOffset: 0.04, height: 0.46, width: 0.79, variant: 'primary' as const },
+  { yOffset: 0.01, zOffset: 0.29, height: 0.59, width: 0.67, variant: 'mixed' as const },
+  { yOffset: 0.13, zOffset: 0.17, height: 0.53, width: 0.91, variant: 'primary' as const },
+  { yOffset: 0.06, zOffset: 0.23, height: 0.47, width: 0.74, variant: 'mixed' as const },
+  { yOffset: 0.17, zOffset: 0.09, height: 0.64, width: 0.86, variant: 'primary' as const },
+  { yOffset: 0.04, zOffset: 0.25, height: 0.41, width: 0.73, variant: 'mixed' as const },
+  { yOffset: 0.10, zOffset: 0.14, height: 0.56, width: 0.89, variant: 'primary' as const },
+  { yOffset: 0.08, zOffset: 0.20, height: 0.50, width: 0.77, variant: 'mixed' as const },
+];
+
 function StoneFireplace() {
   const fireplaceWidth = 6;
   const fireplaceHeight = 4;
   const stoneDepth = 0.8;
-  
+
   return (
     <group position={[-DIMENSIONS.width / 2 + stoneDepth / 2 + 0.1, 0, -1]}>
       {/* Stone surround base */}
@@ -330,19 +354,19 @@ function StoneFireplace() {
         <StoneMaterial variant="primary" />
       </mesh>
 
-      {/* Stone texture variation blocks */}
-      {Array.from({ length: 20 }).map((_, i) => (
+      {/* Stone texture variation blocks - using pre-computed static positions */}
+      {FIREPLACE_TILES.map((tile, i) => (
         <mesh
           key={`stone-${i}`}
           position={[
             stoneDepth / 2 + 0.01,
-            0.5 + (i % 5) * 0.7 + Math.random() * 0.2,
-            -2.5 + Math.floor(i / 5) * 1.2 + Math.random() * 0.3
+            0.5 + (i % 5) * 0.7 + tile.yOffset,
+            -2.5 + Math.floor(i / 5) * 1.2 + tile.zOffset
           ]}
           castShadow
         >
-          <boxGeometry args={[0.1, 0.4 + Math.random() * 0.3, 0.6 + Math.random() * 0.4]} />
-          <StoneMaterial variant={Math.random() > 0.5 ? 'mixed' : 'primary'} />
+          <boxGeometry args={[0.1, tile.height, tile.width]} />
+          <StoneMaterial variant={tile.variant} />
         </mesh>
       ))}
 
@@ -397,6 +421,22 @@ function StoneFireplace() {
 // STONE ALCOVE (Adjacent to fireplace)
 // ============================================================
 
+// Pre-computed static tile data for alcove to prevent re-randomization on render
+const ALCOVE_TILES = [
+  { height: 0.72, width: 0.58, variant: 'mixed' as const },
+  { height: 0.65, width: 0.52, variant: 'dark' as const },
+  { height: 0.81, width: 0.64, variant: 'mixed' as const },
+  { height: 0.58, width: 0.48, variant: 'dark' as const },
+  { height: 0.76, width: 0.55, variant: 'mixed' as const },
+  { height: 0.69, width: 0.61, variant: 'dark' as const },
+  { height: 0.84, width: 0.46, variant: 'mixed' as const },
+  { height: 0.62, width: 0.67, variant: 'dark' as const },
+  { height: 0.78, width: 0.53, variant: 'mixed' as const },
+  { height: 0.55, width: 0.59, variant: 'dark' as const },
+  { height: 0.71, width: 0.44, variant: 'mixed' as const },
+  { height: 0.88, width: 0.56, variant: 'dark' as const },
+];
+
 function StoneAlcove() {
   return (
     <group position={[-DIMENSIONS.width / 2 + 0.5, 0, -5]}>
@@ -406,8 +446,8 @@ function StoneAlcove() {
         <StoneMaterial variant="primary" />
       </mesh>
 
-      {/* Stone texture blocks */}
-      {Array.from({ length: 12 }).map((_, i) => (
+      {/* Stone texture blocks - using pre-computed static values */}
+      {ALCOVE_TILES.map((tile, i) => (
         <mesh
           key={`alcove-stone-${i}`}
           position={[
@@ -417,8 +457,8 @@ function StoneAlcove() {
           ]}
           castShadow
         >
-          <boxGeometry args={[0.1, 0.5 + Math.random() * 0.4, 0.4 + Math.random() * 0.3]} />
-          <StoneMaterial variant={Math.random() > 0.5 ? 'mixed' : 'dark'} />
+          <boxGeometry args={[0.1, tile.height, tile.width]} />
+          <StoneMaterial variant={tile.variant} />
         </mesh>
       ))}
     </group>
@@ -807,49 +847,136 @@ function CatTower({ position }: { position: [number, number, number] }) {
 }
 
 // ============================================================
-// POTTED PLANT
+// MONSTERA PLANT (Realistic houseplant)
 // ============================================================
+
+// Pre-defined Monstera leaf configurations for consistent rendering
+const MONSTERA_LEAVES = [
+  // Large mature leaves (with characteristic splits)
+  { stemPos: [0, 1.2, 0], stemRot: [-0.3, 0.8, 0], stemLen: 1.4, leafScale: 1.2, leafColor: '#1B5E20' },
+  { stemPos: [0.1, 1.1, 0.1], stemRot: [0.2, -0.5, 0], stemLen: 1.5, leafScale: 1.3, leafColor: '#2E7D32' },
+  { stemPos: [-0.05, 1.3, -0.05], stemRot: [-0.4, 2.2, 0], stemLen: 1.3, leafScale: 1.1, leafColor: '#1B5E20' },
+  { stemPos: [0.08, 1.0, -0.08], stemRot: [0.3, 3.8, 0], stemLen: 1.6, leafScale: 1.4, leafColor: '#388E3C' },
+  // Medium leaves
+  { stemPos: [-0.12, 1.4, 0.06], stemRot: [-0.5, 1.5, 0], stemLen: 1.1, leafScale: 0.9, leafColor: '#43A047' },
+  { stemPos: [0.06, 1.5, 0.1], stemRot: [0.1, -1.2, 0], stemLen: 1.0, leafScale: 0.85, leafColor: '#2E7D32' },
+  { stemPos: [-0.08, 1.2, -0.1], stemRot: [-0.2, 4.5, 0], stemLen: 1.2, leafScale: 0.95, leafColor: '#1B5E20' },
+  // Smaller/younger leaves
+  { stemPos: [0.05, 1.6, 0], stemRot: [-0.1, 0.3, 0], stemLen: 0.7, leafScale: 0.6, leafColor: '#4CAF50' },
+  { stemPos: [-0.03, 1.55, 0.05], stemRot: [0.2, 2.8, 0], stemLen: 0.6, leafScale: 0.5, leafColor: '#66BB6A' },
+];
+
+function MonsteraLeaf({ scale = 1, color = '#2E7D32' }: { scale?: number; color?: string }) {
+  // Create a stylized Monstera leaf shape using multiple planes
+  return (
+    <group scale={[scale, scale, scale]}>
+      {/* Main leaf body - heart-shaped base */}
+      <mesh castShadow>
+        <planeGeometry args={[0.8, 1.0]} />
+        <meshStandardMaterial
+          color={color}
+          roughness={0.7}
+          metalness={0.05}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Leaf lobes (the characteristic Monstera splits) */}
+      <mesh position={[-0.35, 0.15, 0.01]} rotation={[0, 0, 0.3]} castShadow>
+        <planeGeometry args={[0.35, 0.6]} />
+        <meshStandardMaterial color={color} roughness={0.7} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[0.35, 0.15, 0.01]} rotation={[0, 0, -0.3]} castShadow>
+        <planeGeometry args={[0.35, 0.6]} />
+        <meshStandardMaterial color={color} roughness={0.7} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[-0.28, -0.2, 0.01]} rotation={[0, 0, 0.5]} castShadow>
+        <planeGeometry args={[0.25, 0.45]} />
+        <meshStandardMaterial color={color} roughness={0.7} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[0.28, -0.2, 0.01]} rotation={[0, 0, -0.5]} castShadow>
+        <planeGeometry args={[0.25, 0.45]} />
+        <meshStandardMaterial color={color} roughness={0.7} side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Central vein */}
+      <mesh position={[0, 0, 0.02]}>
+        <boxGeometry args={[0.03, 0.9, 0.01]} />
+        <meshStandardMaterial color="#1B5E20" roughness={0.8} />
+      </mesh>
+    </group>
+  );
+}
 
 function PottedPlant({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
-      {/* Pot */}
-      <mesh position={[0, 0.4, 0]} castShadow>
-        <cylinderGeometry args={[0.35, 0.25, 0.8, 12]} />
-        <meshStandardMaterial color="#8B4513" roughness={0.8} />
+      {/* Woven basket-style pot */}
+      <mesh position={[0, 0.5, 0]} castShadow>
+        <cylinderGeometry args={[0.5, 0.4, 1.0, 16]} />
+        <meshStandardMaterial color="#8B7355" roughness={0.9} />
       </mesh>
 
-      {/* Soil */}
-      <mesh position={[0, 0.75, 0]}>
-        <cylinderGeometry args={[0.32, 0.32, 0.1, 12]} />
-        <meshStandardMaterial color="#3D2817" roughness={0.95} />
+      {/* Pot rim */}
+      <mesh position={[0, 1.0, 0]} castShadow>
+        <torusGeometry args={[0.48, 0.04, 8, 24]} />
+        <meshStandardMaterial color="#7A6548" roughness={0.85} />
       </mesh>
 
-      {/* Main stem */}
-      <mesh position={[0, 1.5, 0]} castShadow>
-        <cylinderGeometry args={[0.05, 0.08, 1.5, 8]} />
-        <meshStandardMaterial color="#228B22" roughness={0.7} />
+      {/* Soil with slight mound */}
+      <mesh position={[0, 0.95, 0]}>
+        <cylinderGeometry args={[0.45, 0.45, 0.1, 16]} />
+        <meshStandardMaterial color="#3E2723" roughness={0.95} />
+      </mesh>
+      <mesh position={[0, 1.02, 0]}>
+        <sphereGeometry args={[0.35, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#4E342E" roughness={0.95} />
       </mesh>
 
-      {/* Leaves */}
-      {[
-        { pos: [0.3, 1.8, 0], rot: [0, 0, -0.5] },
-        { pos: [-0.3, 1.9, 0.1], rot: [0.2, 0, 0.6] },
-        { pos: [0.1, 2.1, -0.3], rot: [-0.3, 0.5, -0.2] },
-        { pos: [-0.2, 2.0, 0.25], rot: [0.4, -0.3, 0.4] },
-        { pos: [0.25, 2.2, 0.15], rot: [0.2, 0.2, -0.3] },
-        { pos: [0, 2.3, 0], rot: [0, 0, 0] },
-      ].map((leaf, i) => (
-        <mesh
-          key={`leaf-${i}`}
-          position={leaf.pos as [number, number, number]}
-          rotation={leaf.rot as [number, number, number]}
-          castShadow
-        >
-          <sphereGeometry args={[0.25, 8, 6]} />
-          <meshStandardMaterial color="#2E8B57" roughness={0.6} />
-        </mesh>
+      {/* Monstera stems and leaves */}
+      {MONSTERA_LEAVES.map((leaf, i) => (
+        <group key={`monstera-${i}`}>
+          {/* Stem */}
+          <mesh
+            position={[
+              leaf.stemPos[0],
+              leaf.stemPos[1] + leaf.stemLen / 2,
+              leaf.stemPos[2]
+            ]}
+            rotation={leaf.stemRot as [number, number, number]}
+            castShadow
+          >
+            <cylinderGeometry args={[0.025, 0.035, leaf.stemLen, 8]} />
+            <meshStandardMaterial color="#33691E" roughness={0.8} />
+          </mesh>
+
+          {/* Leaf at end of stem */}
+          <group
+            position={[
+              leaf.stemPos[0] + Math.sin(leaf.stemRot[1]) * leaf.stemLen * 0.8,
+              leaf.stemPos[1] + leaf.stemLen * 0.9,
+              leaf.stemPos[2] + Math.cos(leaf.stemRot[1]) * leaf.stemLen * 0.8
+            ]}
+            rotation={[
+              leaf.stemRot[0] - 0.3,
+              leaf.stemRot[1],
+              0
+            ]}
+          >
+            <MonsteraLeaf scale={leaf.leafScale} color={leaf.leafColor} />
+          </group>
+        </group>
       ))}
+
+      {/* A few aerial roots for realism */}
+      <mesh position={[0.15, 1.3, 0.1]} rotation={[0.2, 0.5, 0.1]} castShadow>
+        <cylinderGeometry args={[0.008, 0.012, 0.6, 6]} />
+        <meshStandardMaterial color="#5D4037" roughness={0.9} />
+      </mesh>
+      <mesh position={[-0.1, 1.25, -0.08]} rotation={[-0.15, -0.3, -0.1]} castShadow>
+        <cylinderGeometry args={[0.006, 0.01, 0.45, 6]} />
+        <meshStandardMaterial color="#5D4037" roughness={0.9} />
+      </mesh>
     </group>
   );
 }
@@ -857,6 +984,17 @@ function PottedPlant({ position }: { position: [number, number, number] }) {
 // ============================================================
 // WALL PAINTING (Van Gogh - Cafe Terrace placeholder)
 // ============================================================
+
+// Pre-computed static star positions for the painting
+const PAINTING_STARS = [
+  { x: 42, y: 28, r: 4.2 }, { x: 128, y: 15, r: 5.1 }, { x: 205, y: 35, r: 3.8 },
+  { x: 72, y: 82, r: 4.5 }, { x: 185, y: 68, r: 3.2 }, { x: 25, y: 105, r: 5.5 },
+  { x: 155, y: 42, r: 4.0 }, { x: 88, y: 118, r: 3.6 }, { x: 220, y: 95, r: 4.8 },
+  { x: 112, y: 65, r: 3.4 }, { x: 48, y: 55, r: 5.2 }, { x: 178, y: 22, r: 4.1 },
+  { x: 15, y: 72, r: 3.9 }, { x: 235, y: 58, r: 4.6 }, { x: 95, y: 8, r: 5.0 },
+  { x: 165, y: 98, r: 3.3 }, { x: 58, y: 132, r: 4.4 }, { x: 198, y: 115, r: 3.7 },
+  { x: 138, y: 88, r: 4.3 }, { x: 32, y: 18, r: 5.3 },
+];
 
 function WallPainting({ position, rotation = 0 }: { position: [number, number, number]; rotation?: number }) {
   // Create a simple procedural "painting" texture representing Cafe Terrace at Night
@@ -873,14 +1011,11 @@ function WallPainting({ position, rotation = 0 }: { position: [number, number, n
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, 256, 160);
 
-      // Stars
+      // Stars - using pre-computed static positions
       ctx.fillStyle = '#FFD700';
-      for (let i = 0; i < 20; i++) {
-        const x = Math.random() * 256;
-        const y = Math.random() * 140;
-        const r = 2 + Math.random() * 4;
+      for (const star of PAINTING_STARS) {
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -1084,11 +1219,11 @@ function Scene({ showGrid, showBlueprint, showShadows, autoRotate, demoStage }: 
           {/* Cat tower near back wall, left side */}
           <CatTower position={[-6, 0, -5]} />
 
-          {/* Potted plant near fireplace */}
-          <PottedPlant position={[-5, 0, 3]} />
+          {/* Potted Monstera plant - tucked deep into corner by fireplace/TV wall */}
+          <PottedPlant position={[-DIMENSIONS.width / 2 + 1.2, 0, -DIMENSIONS.depth / 2 + 1.5]} />
 
-          {/* Painting on back wall */}
-          <WallPainting position={[4, 4.5, -DIMENSIONS.depth / 2 + 0.2]} rotation={0} />
+          {/* Painting on back wall - centered horizontally at eye level */}
+          <WallPainting position={[0, 4.5, -DIMENSIONS.depth / 2 + 0.2]} rotation={0} />
         </>
       )}
 
