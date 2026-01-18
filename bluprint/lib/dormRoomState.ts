@@ -23,21 +23,17 @@ export interface FurnitureItem {
   color: string;
 }
 
-// Initial furniture catalog for inventory (bookshelf added after unlock)
-export const furnitureInventory: FurnitureItem[] = [
-  { id: 'bed-item', type: 'bed', name: 'Twin Bed', dimensions: '6.25\' × 3.25\'', color: 'Oak wood frame' },
-  { id: 'desk-item', type: 'desk', name: 'Desk with Hutch', dimensions: '4\' × 2\'', color: 'Medium oak' },
-  { id: 'chair-item', type: 'chair', name: 'Office Chair', dimensions: '1.2\' × 1.2\'', color: 'Black mesh' },
-  { id: 'shelf-item', type: 'shelf', name: 'Wardrobe', dimensions: '4\' × 2\'', color: 'Oak with shelving' },
-];
+// Inventory is empty by default - only bookshelf shown after extension unlock
+export const furnitureInventory: FurnitureItem[] = [];
 
 // Bookshelf item - shown only after extension unlock
+// IKEA BILLY: 40cm × 28cm × 202cm (W × D × H)
 export const bookshelfItem: FurnitureItem = {
   id: 'bookshelf-item',
   type: 'bookshelf',
-  name: 'Bookshelf (Demo Asset)',
-  dimensions: '3\' × 1\' × 6\'',
-  color: 'Oak finish (#8b7355)'
+  name: 'BILLY Bookcase',
+  dimensions: '40 × 28 × 202 cm',
+  color: 'White'
 };
 
 // Room dimensions (matching photos - standard dorm room)

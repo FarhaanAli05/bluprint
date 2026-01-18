@@ -5,6 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { SceneObject } from "@/lib/dormRoomState";
+import BillyBookshelf from "./assets/BillyBookshelf";
 
 // ============================================================
 // ROOM CONSTANTS (matching reference photos)
@@ -743,54 +744,8 @@ function Wardrobe({ position, rotation }: { position: [number, number, number]; 
 }
 
 function Bookshelf({ position, rotation }: { position: [number, number, number]; rotation: number }) {
-  // Dimensions from FurnitureLibrary: 3ft wide × 1ft deep × 6ft tall
-  const width = 3;
-  const depth = 1;
-  const height = 6;
-  const shelfThickness = 0.08;
-
-  return (
-    <group position={position} rotation={[0, rotation, 0]}>
-      {/* Back panel */}
-      <mesh position={[0, height / 2, -depth / 2 + 0.05]} castShadow>
-        <boxGeometry args={[width, height, 0.1]} />
-        <WoodMaterial color="#8b7355" roughness={0.5} />
-      </mesh>
-
-      {/* Side panels */}
-      <mesh position={[-width / 2 + 0.05, height / 2, 0]} castShadow>
-        <boxGeometry args={[0.1, height, depth]} />
-        <WoodMaterial color="#8b7355" roughness={0.5} />
-      </mesh>
-      <mesh position={[width / 2 - 0.05, height / 2, 0]} castShadow>
-        <boxGeometry args={[0.1, height, depth]} />
-        <WoodMaterial color="#8b7355" roughness={0.5} />
-      </mesh>
-
-      {/* Shelves (6 shelves total, evenly spaced) */}
-      {[0, 1.2, 2.4, 3.6, 4.8, 6].map((y, i) => (
-        <mesh key={i} position={[0, y, 0]} castShadow>
-          <boxGeometry args={[width - 0.2, shelfThickness, depth - 0.1]} />
-          <WoodMaterial color="#8b7355" roughness={0.4} />
-        </mesh>
-      ))}
-
-      {/* Books on shelves (decorative) */}
-      {[1.25, 2.45, 3.65, 4.85].map((y, i) => (
-        <group key={`books-${i}`}>
-          {/* Stack of books */}
-          <mesh position={[-0.6, y + 0.25, 0.1]} castShadow>
-            <boxGeometry args={[0.8, 0.4, 0.6]} />
-            <meshStandardMaterial color={i % 2 === 0 ? "#4A5568" : "#2D3748"} roughness={0.8} />
-          </mesh>
-          <mesh position={[0.5, y + 0.2, 0.1]} castShadow>
-            <boxGeometry args={[0.6, 0.3, 0.5]} />
-            <meshStandardMaterial color={i % 2 === 0 ? "#744210" : "#5A3410"} roughness={0.8} />
-          </mesh>
-        </group>
-      ))}
-    </group>
-  );
+  // Use the new Billy-style bookshelf from assets
+  return <BillyBookshelf position={position} rotation={rotation} />;
 }
 
 // ============================================================

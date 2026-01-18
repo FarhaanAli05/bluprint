@@ -155,14 +155,6 @@ export default function DormRoomDemoPage() {
           <span className="hidden rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-slate-400 sm:inline">
             {ROOM.width} × {ROOM.depth} feet
           </span>
-          {/* Debug indicator */}
-          <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-            inventoryUnlocked
-              ? 'border-green-400/20 bg-green-500/20 text-green-100'
-              : 'border-orange-400/20 bg-orange-500/20 text-orange-100'
-          }`}>
-            Storage: {inventoryUnlocked ? 'Unlocked' : 'Locked'}
-          </span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -171,15 +163,6 @@ export default function DormRoomDemoPage() {
             className="rounded-full border border-red-400/20 bg-red-500/20 px-4 py-2 text-xs text-red-100 hover:bg-red-500/30 transition-colors"
           >
             Reset Demo
-          </button>
-          <button className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-200 hover:bg-white/10 transition-colors">
-            Save
-          </button>
-          <button className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-200 hover:bg-white/10 transition-colors">
-            Export
-          </button>
-          <button className="rounded-full border border-blue-400/20 bg-blue-500/20 px-4 py-2 text-xs text-blue-100 hover:bg-blue-500/30 transition-colors">
-            Share
           </button>
         </div>
       </header>
