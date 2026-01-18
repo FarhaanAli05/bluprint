@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bluprint Extension Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .demo-container {
+            position: relative;
+        }
+
+        /* Browser Window */
+        .browser-window {
+            width: 900px;
+            height: 600px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Ensure popup fits within browser window */
+        .extension-popup {
+            max-width: calc(100% - 40px);
+            max-height: calc(100% - 90px);
+        }
+
+        /* Browser Header */
+        .browser-header {
+            height: 40px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .window-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .window-dot.red { background: #ff5f57; }
+        .window-dot.yellow { background: #ffbd2e; }
+        .window-dot.green { background: #28ca42; }
+
+        .url-bar {
+            flex: 1;
+            height: 28px;
+            background: #fff;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            padding: 0 12px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            color: #333;
+        }
+
+        .url-bar::before {
+            content: "🔒 ikea.com/us/en/p/hemnes-bed-frame-with-4-storage-boxes-white-luroy-s19248448";
+        }
+
+        .extension-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .extension-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+
+        .extension-icon::before {
+            content: "B";
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .menu-icon::before {
+            content: "⋮";
+        }
+
+        /* Browser Content */
+        .browser-content {
+            height: calc(100% - 40px);
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ikea-page {
+            padding: 40px;
+            height: 100%;
+        }
+
+        .ikea-logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #0058a3;
+            margin-bottom: 30px;
+        }
+
+        .product-placeholder {
+            display: flex;
+            gap: 40px;
+        }
+
+        .product-image-placeholder {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Subtle depth */
+        }
+
+        .product-image-placeholder::before {
+            content: '🪑';
+            opacity: 0.25;
+            filter: grayscale(0.6);
+            font-size: 120px;
+            line-height: 1;
+        }
+
+        .product-info-placeholder {
+            flex: 1;
+        }
+
+        .info-block {
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+
+        .info-block:first-child {
+            width: 60%;
+            height: 28px;
+        }
+
+        .info-block:nth-child(2) {
+            width: 40%;
+        }
+
+        .info-block:nth-child(3) {
+            width: 50%;
+        }
+
+        /* Extension Popup - Scaled down to 60% (216px × 259px from 360px × 432px) */
+        /* Fixed position: anchored to extension icon (top-right toolbar area) */
+        .extension-popup {
+            position: absolute;
+            top: 45px; /* Just below browser header (40px) + small gap */
+            right: 12px; /* Aligned with extension icon in toolbar */
+            width: 216px; /* 60% of 360px */
+            height: 259px; /* 60% of 432px */
+            background: linear-gradient(135deg, #2563eb 0%, #2563eb 100%);
+            border-radius: 4.8px; /* 60% of 8px */
+            box-shadow: 0 3.6px 10.8px rgba(0, 0, 0, 0.15); /* 60% scaling */
+            overflow: visible;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: opacity 0.25s ease-out, visibility 0.25s ease-out, transform 0.25s ease-out;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            /* Fixed position - no movement allowed */
+            will-change: opacity, visibility, transform;
+        }
+
+        .extension-popup.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Inner box (like .box) - 60% scale */
+        .popup-box {
+            background: white;
+            border-radius: 4.8px; /* 60% of 8px */
+            width: 100%;
+            height: 259px; /* 60% of 432px */
+            display: flex;
+            flex-direction: column;
+            overflow: visible;
+            position: relative;
+            box-shadow: 0 3.6px 10.8px rgba(0, 0, 0, 0.15); /* 60% of 6px 18px */
+            /* Establish stacking context */
+            isolation: isolate;
+        }
+
+        /* Blueprint background - consistent across all states (except success) */
+        .popup-box.blueprint-bg {
+            background: #F5F7FA;
+        }
+
+        .popup-box.blueprint-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('public/blueback.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(2px);
+            transform: scale(1.02);
+            z-index: -1; /* Behind all content - negative z-index ensures it stays behind */
+            pointer-events: none; /* Don't intercept mouse events */
+        }
+
+        /* Success state removes blueprint background */
+        .popup-box.no-blueprint {
+            background: white;
+        }
+
+        .popup-box.no-blueprint::before {
+            display: none;
+        }
+
+        /* Popup Pages - page-to-page navigation with transitions */
+        .popup-state {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 1; /* Always above blueprint background, even during transitions */
+        }
+
+        .popup-state.active {
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+            transform: translateX(0);
+            z-index: 1; /* Above blueprint background - consistent during transitions */
+        }
+
+
+        /* Page transition: slide in from right */
+        .popup-state.entering {
+            opacity: 0;
+            transform: translateX(20px);
+            z-index: 1; /* Maintain z-index during transitions */
+        }
+
+        .popup-state.entering.active {
+            opacity: 1;
+            transform: translateX(0);
+            z-index: 1; /* Maintain z-index during transitions */
+        }
+
+        /* Page transition: slide out to left */
+        .popup-state.exiting {
+            opacity: 0;
+            transform: translateX(-20px);
+            z-index: 1; /* Maintain z-index during transitions */
+        }
+
+        /* Initial State - 60% scale, matches extension exactly */
+        .initial-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 12px; /* 60% of 20px */
+            padding-top: 54px; /* 60% of 90px */
+            position: relative;
+        }
+
+        /* "bluprint" branding - positioned exactly as extension */
+        .initial-state h2 {
+            position: absolute;
+            top: 24px; /* 60% of 40px */
+            left: 0;
+            right: 0;
+            margin: 0;
+            color: #ffffff;
+            font-size: 19.2px; /* 60% of 32px */
+            font-weight: 700;
+            text-align: center;
+            z-index: 1;
+            letter-spacing: -0.3px; /* 60% of -0.5px */
+            line-height: 1.2;
+        }
+
+        /* Action card - 60% scale */
+        .action-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+            border-radius: 4.8px; /* 60% of 8px */
+            padding: 9.6px 12px; /* 60% of 16px 20px */
+            box-shadow: 0 1.2px 4.8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(37, 99, 235, 0.1);
+            flex-shrink: 0;
+            max-width: 132px; /* 60% of 220px */
+            width: 100%;
+            position: relative;
+            z-index: 10; /* Well above blueprint background */
+        }
+
+        .action-description {
+            margin: 0 0 7.2px 0; /* 60% of 12px */
+            color: #666;
+            font-size: 6.6px; /* 60% of 11px */
+            font-weight: 400;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        /* Create button (Apply) - 60% scale, matches extension exactly */
+        .create-button {
+            background: #2563eb;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 9.6px; /* 60% of 10px 16px */
+            font-size: 7.2px; /* 60% of 12px */
+            font-weight: 600;
+            border-radius: 3px; /* 60% of 5px */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0.6px 1.8px rgba(37, 99, 235, 0.3); /* 60% scaling */
+            width: 100%;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle grid pattern overlay for blueprint feel */
+        .create-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 4.8px 4.8px; /* 60% of 8px */
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .create-button:hover {
+            background: #2563eb;
+            box-shadow: 0 1.2px 3.6px rgba(37, 99, 235, 0.4); /* 60% scaling */
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: none; /* No scale transform - keeps click accuracy */
+            outline: 2px solid rgba(37, 99, 235, 0.3); /* Visible hover feedback */
+            outline-offset: -2px;
+        }
+
+        .create-button:active {
+            background: #2563eb;
+            box-shadow: 0 0.6px 1.2px rgba(37, 99, 235, 0.3); /* 60% scaling */
+            transform: scale(0.95); /* Subtle press effect */
+            outline: none;
+        }
+
+        .create-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .create-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .action-card .create-button {
+            width: 100%;
+            margin: 0;
+        }
+
+        .error-message {
+            margin-top: 6.6px; /* 60% of 11px */
+            color: #d32f2f;
+            font-size: 5.4px; /* 60% of 9px */
+            text-align: center;
+            padding: 3.6px 4.8px; /* 60% of 6px 8px */
+            background: rgba(211, 47, 47, 0.1);
+            border-radius: 2.4px; /* 60% of 4px */
+            border: 1px solid rgba(211, 47, 47, 0.2);
+        }
+
+        /* Preview State - 60% scale, matches extension exactly */
+        .preview-state {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+            overflow: visible; /* Allow content with negative margin to be visible */
+            padding-top: 0; /* Start at top - no extra padding needed */
+            align-items: stretch; /* Top-aligned, no centering */
+            justify-content: flex-start; /* Start from top, not center */
+        }
+
+        /* Preview Card - Groups model + buttons as one unit */
+        .preview-card {
+            background: rgba(248, 249, 250, 0.95);
+            backdrop-filter: blur(4px);
+            border-radius: 3.6px; /* 60% of 6px */
+            margin: 0 4.8px 0 4.8px; /* Left/right only, no top/bottom */
+            margin-top: -120px; /* Negative margin to move content up to top */
+            padding: 2px; /* Minimal padding to save space */
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0.6px 1.8px rgba(0, 0, 0, 0.05); /* 60% scaling */
+            position: relative;
+            z-index: 10; /* Well above blueprint background (z-index: -1) */
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* Model Viewer Wrapper - 60% scale, significantly reduced to fit everything */
+        .model-viewer-wrapper {
+            height: 75px; /* Much smaller to ensure everything fits */
+            padding: 1px; /* Minimal padding */
+            padding-top: 1px;
+            padding-bottom: 1px;
+            position: relative;
+            flex-shrink: 0;
+            margin-top: 0; /* No top margin - starts immediately */
+        }
+
+        .model-viewer-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+            border-radius: 7.2px; /* Rounded square */
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle depth */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .model-preview {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            position: relative;
+        }
+
+        .model-preview::before {
+            content: '🪑';
+            opacity: 0.25;
+            filter: grayscale(0.6);
+            font-size: 72px; /* Scaled proportionally to container */
+            line-height: 1;
+        }
+
+        /* Action Bar - 60% scale */
+        .preview-actions {
+            display: flex;
+            gap: 2.4px; /* Reduced gap */
+            padding: 2px 2px 2px; /* Minimal padding to save vertical space */
+            flex-shrink: 0;
+            position: relative;
+            margin-top: 0; /* Directly under model card */
+            background: transparent;
+            z-index: 10; /* Well above blueprint background (z-index: -1) */
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 3.6px 7.2px; /* Reduced vertical padding */
+            font-size: 6.6px; /* 60% of 11px */
+            font-weight: 600;
+            border-radius: 3px; /* 60% of 5px */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            min-height: 16.8px; /* Reduced height */
+            margin: 0;
+        }
+
+        .action-button.primary {
+            background: #2563eb;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0.6px 1.8px rgba(37, 99, 235, 0.3); /* 60% scaling */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-button.primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 4.8px 4.8px; /* 60% of 8px */
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .action-button.primary:hover {
+            background: #2563eb;
+            box-shadow: 0 1.2px 3.6px rgba(37, 99, 235, 0.4); /* 60% scaling */
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: none; /* No scale transform - keeps click accuracy */
+            outline: 2px solid rgba(37, 99, 235, 0.3); /* Visible hover feedback */
+            outline-offset: -2px;
+        }
+
+        .action-button.primary:active {
+            background: #2563eb;
+            box-shadow: 0 0.6px 1.2px rgba(37, 99, 235, 0.3); /* 60% scaling */
+            transform: scale(0.95); /* Subtle press effect */
+            outline: none;
+        }
+
+        .action-button.secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #e0e0e0;
+            font-size: 6px; /* 60% of 10px */
+        }
+
+        .action-button.secondary:hover {
+            background: #eeeeee;
+            color: #333;
+            transform: none; /* No scale transform - keeps click accuracy */
+            outline: 2px solid rgba(0, 0, 0, 0.1); /* Visible hover feedback */
+            outline-offset: -2px;
+        }
+
+        .action-button.secondary:active {
+            background: #e8e8e8;
+            transform: scale(0.95); /* Subtle press effect */
+            outline: none;
+        }
+
+        /* Scrollable Details Container - only this scrolls */
+        .preview-scroll-container {
+            flex: 0 1 auto; /* Don't grow to fill space - prevents pushing content down */
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+            max-height: 150px; /* Reduced to keep content compact */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.05);
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            padding: 0 4.8px 4.8px; /* Match card margins, bottom padding */
+            position: relative;
+            z-index: 10; /* Well above blueprint background (z-index: -1) */
+            margin-top: 0; /* No gap - directly below button row */
+        }
+
+        .preview-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .preview-scroll-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 3px;
+        }
+
+        .preview-scroll-container::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+            transition: background-color 0.2s ease;
+        }
+
+        .preview-scroll-container::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        /* Product Info */
+        .product-info {
+            padding: 6px 6px 7.2px; /* Reduced padding to save space */
+            padding-bottom: 7.2px;
+            text-align: left;
+            position: relative;
+            min-height: fit-content;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(3px);
+            border-radius: 3.6px; /* 60% of 6px */
+            margin: 0 0 3.6px 0; /* Reduced bottom margin */
+            box-shadow: 0 0.6px 1.2px rgba(0, 0, 0, 0.05); /* 60% scaling */
+            z-index: 10; /* Well above blueprint background (z-index: -1) */
+        }
+
+        .product-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10px;
+            right: 10px;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.08), transparent);
+        }
+
+        /* Product List - Definition list with 2-column layout */
+        .product-list {
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 85px 1fr;
+            gap: 10px 12px;
+            align-items: start;
+        }
+
+        .info-item {
+            display: contents;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: right;
+            padding-right: 8px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 11px;
+            font-weight: 400;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Success State - 60% scale, matches extension exactly */
+        .success-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 0;
+            padding: 0 12px; /* 60% of 20px */
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px); /* 60% of 10px */
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-icon {
+            margin: 4.8px 0 9.6px; /* 60% of 8px 0 16px */
+            animation: scaleIn 0.4s ease 0.1s both;
+        }
+
+        .success-icon svg {
+            width: 21.6px; /* 60% of 36px */
+            height: 21.6px; /* 60% of 36px */
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .success-title {
+            margin: 0 0 3.6px 0; /* 60% of 6px */
+            color: #333;
+            font-size: 10.8px; /* 60% of 18px */
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .success-subtext {
+            margin: 0 0 12.6px 0; /* 60% of 21px */
+            color: #666;
+            font-size: 6px; /* 60% of 10px */
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .success-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4.8px; /* 60% of 8px */
+            width: 100%;
+            max-width: 126px; /* 60% of 210px */
+        }
+
+        .success-button {
+            padding: 4.8px 9px; /* 60% of 8px 15px */
+            font-size: 6px; /* 60% of 10px */
+            font-weight: 600;
+            border-radius: 3px; /* 60% of 5px */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            width: 100%;
+            min-height: 18px; /* 60% of 30px */
+        }
+
+        .success-button.primary {
+            background: #2563eb;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0.6px 1.8px rgba(37, 99, 235, 0.3); /* 60% scaling */
+        }
+
+        .success-button.primary:hover {
+            background: #2563eb;
+            box-shadow: 0 1.2px 3.6px rgba(37, 99, 235, 0.4); /* 60% scaling */
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: none; /* No scale transform - keeps click accuracy */
+        }
+
+        .success-button.primary:active {
+            transform: scale(0.95); /* Subtle press effect */
+        }
+
+        .success-button.secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #e0e0e0;
+        }
+
+        .success-button.secondary:hover {
+            background: #eeeeee;
+            color: #333;
+            transform: none; /* No scale transform - keeps click accuracy */
+        }
+
+        .success-button.secondary:active {
+            transform: scale(0.95); /* Subtle press effect */
+        }
+
+        .success-actions .btn-secondary {
+            order: 1;
+        }
+
+        .success-actions .btn-primary {
+            order: 2;
+        }
+
+        /* Cursor */
+        .demo-cursor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .demo-cursor.visible {
+            opacity: 1;
+        }
+
+        .cursor-arrow {
+            width: 0;
+            height: 0;
+            border-left: 8px solid #333;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            transform: translateY(-3px);
+            filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.3));
+        }
+
+        .cursor-dot {
+            width: 4px;
+            height: 4px;
+            background: #333;
+            border-radius: 50%;
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1500;
+        }
+
+        .toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast::before {
+            content: "Saved ";
+        }
+
+        .toast::after {
+            content: " ✓";
+            color: #28ca42;
+            font-weight: bold;
+        }
+
+        /* Hover effects */
+        .hover-effect {
+            position: relative;
+        }
+
+        .hover-effect::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.2s, width 0.2s, height 0.2s;
+        }
+
+        .hover-effect.hovered::after {
+            opacity: 1;
+            width: calc(100% + 8px);
+            height: calc(100% + 8px);
+        }
+
+        /* Click animation */
+        .click-animation {
+            animation: clickPress 0.2s ease-out;
+        }
+
+        @keyframes clickPress {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.92); }
+            100% { transform: scale(1); }
+        }
+
+        /* Demo label */
+        .demo-label {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            color: #999;
+            font-size: 12px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-label">Demo - Visual simulation only</div>
+        <div class="browser-window">
+            <!-- Browser Header -->
+            <div class="browser-header">
+                <div class="window-controls">
+                    <div class="window-dot red"></div>
+                    <div class="window-dot yellow"></div>
+                    <div class="window-dot green"></div>
+                </div>
+                <div class="url-bar"></div>
+                <div class="extension-icon hover-effect" id="extensionIcon"></div>
+                <div class="menu-icon"></div>
+            </div>
+
+            <!-- Browser Content -->
+            <div class="browser-content">
+                <div class="ikea-page">
+                    <div class="ikea-logo">IKEA</div>
+                    <div class="product-placeholder">
+                        <div class="product-image-placeholder"></div>
+                        <div class="product-info-placeholder">
+                            <div class="info-block"></div>
+                            <div class="info-block"></div>
+                            <div class="info-block"></div>
+                            <div class="info-block"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toast Notification -->
+                <div class="toast" id="toast"></div>
+
+                <!-- Extension Popup -->
+                <div class="extension-popup" id="popup">
+                    <div class="popup-box" id="popupBox">
+                        <!-- Page 1: Apply State -->
+                    <div class="popup-state initial-state active" id="initialState">
+                            <h2>bluprint</h2>
+                            <div class="action-card">
+                                <p class="action-description">Preview this item at real scale in your room</p>
+                                <button class="create-button hover-effect" id="applyBtn">
+                                    <span id="applyBtnText">Apply</span>
+                                </button>
+                    </div>
+                    </div>
+
+                        <!-- Page 2: Preview State -->
+                    <div class="popup-state preview-state" id="previewState">
+                            <!-- Preview Card - Model + Buttons as one unit -->
+                            <div class="preview-card">
+                                <!-- 3D Model Viewer -->
+                                <div class="model-viewer-wrapper">
+                                    <div class="model-viewer-container">
+                                        <div class="model-preview"></div>
+                            </div>
+                            </div>
+
+                                <!-- Action Bar -->
+                                <div class="preview-actions">
+                                    <button class="action-button secondary hover-effect" id="cancelBtn">Cancel</button>
+                                    <button class="action-button primary hover-effect" id="addBtn">Add to storage</button>
+                            </div>
+                        </div>
+
+                        </div>
+
+                        <!-- Page 3: Success State -->
+                        <div class="popup-state success-state success-view" id="successState">
+                            <h2 class="success-title">Success!</h2>
+                            <div class="success-icon">
+                                <svg width="21.6" height="21.6" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="32" cy="32" r="32" fill="#10b981"/>
+                                    <path d="M20 32l8 8 16-16" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <p class="success-subtext">This item has been saved to your storage.</p>
+                            <div class="success-actions">
+                                <button class="success-button secondary hover-effect" id="keepShoppingBtn">Keep shopping</button>
+                                <button class="success-button primary hover-effect" id="viewStorageBtn">View storage</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animated Cursor -->
+        <div class="demo-cursor" id="cursor">
+            <div class="cursor-arrow"></div>
+            <div class="cursor-dot"></div>
+        </div>
+    </div>
+
+    <script>
+        // Element references
+        const cursor = document.getElementById('cursor');
+        const extensionIcon = document.getElementById('extensionIcon');
+        const popup = document.getElementById('popup');
+        const popupBox = document.getElementById('popupBox');
+        const applyBtn = document.getElementById('applyBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const addBtn = document.getElementById('addBtn');
+        const keepShoppingBtn = document.getElementById('keepShoppingBtn');
+        const viewStorageBtn = document.getElementById('viewStorageBtn');
+        const toast = document.getElementById('toast');
+
+        const initialState = document.getElementById('initialState');
+        const previewState = document.getElementById('previewState');
+        const successState = document.getElementById('successState');
+
+        // Animation functions
+        function animateCursor(x, y, duration = 800, callback) {
+            return new Promise((resolve) => {
+                cursor.style.transition = `left ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94), top ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+                cursor.style.left = `${x}px`;
+                cursor.style.top = `${y}px`;
+                cursor.classList.add('visible');
+
+                setTimeout(() => {
+                    if (callback) callback();
+                    resolve();
+                }, duration);
+            });
+        }
+
+        function hoverAt(element, delay = 0, hoverDuration = 500, callback) {
+            return new Promise((resolve) => {
+                setTimeout(async () => {
+                    // Get element position relative to browser window
+                    const rect = element.getBoundingClientRect();
+                    const browserRect = document.querySelector('.browser-window').getBoundingClientRect();
+                    
+                    // Calculate center of button (accounting for any transforms)
+                    const x = rect.left + rect.width / 2 - browserRect.left;
+                    const y = rect.top + rect.height / 2 - browserRect.top;
+
+                    // Slow, human-like cursor movement (800ms)
+                    await animateCursor(x, y, 800);
+                    
+                    // Brief pause after movement, then hover
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    element.classList.add('hovered');
+
+                    // Hover duration (0.5s as specified)
+                    setTimeout(() => {
+                        // Click animation - ensure cursor is still on button
+                        element.classList.add('click-animation');
+                        setTimeout(() => {
+                            element.classList.remove('click-animation');
+                            element.classList.remove('hovered');
+                            
+                            // Brief pause after click
+                            setTimeout(() => {
+                                if (callback) callback();
+                                resolve();
+                            }, 100);
+                        }, 200);
+                    }, hoverDuration);
+                }, delay);
+            });
+        }
+
+        // Page transition with slide animation
+        function showPage(pageElement, fromPage = null) {
+            // Hide all pages
+            [initialState, previewState, successState].forEach(state => {
+                state.classList.remove('active', 'entering', 'exiting');
+            });
+            
+            // Animate exit of current page
+            if (fromPage) {
+                fromPage.classList.add('exiting');
+            }
+            
+            // Animate entry of new page
+            pageElement.classList.add('entering', 'active');
+            
+            // Trigger transition
+            setTimeout(() => {
+                pageElement.classList.remove('entering');
+                if (fromPage) {
+                    fromPage.classList.remove('exiting');
+                }
+            }, 50);
+            
+            // Blueprint background: show for all states EXCEPT success
+            if (pageElement === successState) {
+                popupBox.classList.remove('blueprint-bg');
+                popupBox.classList.add('no-blueprint');
+            } else {
+                popupBox.classList.add('blueprint-bg');
+                popupBox.classList.remove('no-blueprint');
+            }
+        }
+
+
+        function setLoading(isLoading) {
+            const applyBtn = document.getElementById('applyBtn');
+            const applyBtnText = document.getElementById('applyBtnText');
+            if (isLoading) {
+                applyBtn.disabled = true;
+                applyBtnText.textContent = 'Scraping...'; // Only button text changes
+                applyBtn.style.opacity = '0.6'; // Dim the button
+            } else {
+                applyBtn.disabled = false;
+                applyBtnText.textContent = 'Apply';
+                applyBtn.style.opacity = '1';
+            }
+        }
+
+        function resetDemo() {
+            cursor.classList.remove('visible');
+            cursor.style.left = '-100px';
+            cursor.style.top = '-100px';
+            popup.classList.remove('visible');
+            showPage(initialState);
+            setLoading(false); // Reset button
+            toast.classList.remove('visible');
+            
+            [extensionIcon, applyBtn, addBtn, keepShoppingBtn, viewStorageBtn].forEach(el => {
+                if (el) el.classList.remove('hovered');
+            });
+        }
+
+        // Main demo orchestration - realistic timing with dwell periods
+        async function runDemo() {
+            if (!isAutomated) return; // Don't run if user has interacted
+            
+            resetDemo();
+            currentState = 'initial';
+
+            // Step 1: Click extension icon
+            // Initial pause
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (!isAutomated) return;
+
+            // Cursor moves to icon → hover (0.5s) → click
+            await hoverAt(extensionIcon, 0, 500, () => {
+                popup.classList.add('visible');
+            });
+
+            // Dwell: Pause 1s so Apply page is clearly readable
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (!isAutomated) return;
+
+            // Step 2: Click Apply button
+            // Cursor moves → hover (0.5s) → click Apply
+            await hoverAt(applyBtn, 0, 500, () => {
+                // Only button text changes to "Scraping..." (same size, same location)
+                currentState = 'loading';
+                setLoading(true);
+            });
+            
+            // Loading state (≈2 seconds) - button shows "Scraping...", rest of popup unchanged
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            if (!isAutomated) return;
+
+            // After loading completes: reset button, transition directly to Preview page
+            setLoading(false);
+            currentState = 'preview';
+            showPage(previewState, initialState);
+            
+            // Dwell: Pause 1s on Preview page so layout is clearly visible
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (!isAutomated) return;
+
+            // Step 3: Click Add to storage
+            // Cursor moves → hover (0.5s) → click Add to storage
+            await hoverAt(addBtn, 0, 500, async () => {
+                // Transition to Success page (500ms delay like extension)
+                await new Promise(resolve => setTimeout(resolve, 500));
+                if (!isAutomated) return;
+                currentState = 'success';
+                showPage(successState, previewState);
+            });
+            
+            // Dwell: Pause 1s so success state is clearly readable
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (!isAutomated) return;
+
+            // Step 4: Click Keep shopping
+            // Cursor moves → hover (0.5s) → click Keep shopping
+            await hoverAt(keepShoppingBtn, 0, 500, () => {
+                // Popup closes
+                popup.classList.remove('visible');
+                toast.classList.add('visible');
+            });
+
+            // Toast visible briefly
+            await new Promise(resolve => setTimeout(resolve, 800));
+            if (!isAutomated) return;
+            toast.classList.remove('visible');
+            
+            // Move cursor away smoothly
+            await animateCursor(850, 550, 600);
+            cursor.classList.remove('visible');
+
+            // Brief pause before loop restarts
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        // State management (matching extension logic)
+        let currentState = 'initial'; // 'initial', 'loading', 'preview', 'success'
+        let isAutomated = true; // Track if we're in automated demo mode
+
+        // Button click handlers - match extension logic exactly
+        applyBtn.addEventListener('click', async function() {
+            if (currentState !== 'initial' || applyBtn.disabled) return;
+            
+            isAutomated = false; // Stop automated demo when user clicks
+            currentState = 'loading';
+            setLoading(true); // Button text changes to "Scraping..."
+            
+            try {
+                // Loading (2 seconds) - only button text changed, rest of popup unchanged
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Success - reset button, transition directly to Page 2 (Preview)
+                setLoading(false);
+                currentState = 'preview';
+                showPage(previewState, initialState);
+            } catch (err) {
+                // Error handling
+                setLoading(false);
+                currentState = 'initial';
+                console.error('Error:', err);
+            }
+        });
+
+        cancelBtn.addEventListener('click', function() {
+            if (currentState !== 'preview') return;
+            
+            isAutomated = false;
+            // Match extension: handleCancel - go back to Page 1
+            currentState = 'initial';
+            showPage(initialState, previewState);
+        });
+
+        addBtn.addEventListener('click', async function() {
+            if (currentState !== 'preview') return;
+            
+            isAutomated = false;
+            // Match extension: handleAddToStorage - Page 2 → Page 3
+            try {
+                // Simulate API call delay (500ms like extension)
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Success - transition to Page 3
+                currentState = 'success';
+                showPage(successState, previewState);
+            } catch (err) {
+                console.error('Storage error:', err);
+            }
+        });
+
+        keepShoppingBtn.addEventListener('click', function() {
+            if (currentState !== 'success') return;
+            
+            isAutomated = false;
+            // Match extension: handleKeepShopping - close popup
+            popup.classList.remove('visible');
+            toast.classList.add('visible');
+            
+            // Reset after toast
+            setTimeout(() => {
+                toast.classList.remove('visible');
+                currentState = 'initial';
+                showState(initialState);
+                popup.classList.add('visible'); // Reopen for next interaction
+            }, 800);
+        });
+
+        viewStorageBtn.addEventListener('click', function() {
+            if (currentState !== 'success') return;
+            
+            isAutomated = false;
+            // Match extension: handleViewStorage - same as keepShopping for now
+            keepShoppingBtn.click();
+        });
+
+        // Start the automated demo loop (only runs if user hasn't interacted)
+        let demoInterval;
+        function startAutoDemo() {
+            // Clear any existing interval
+            if (demoInterval) {
+                clearInterval(demoInterval);
+            }
+            // Run demo - it will complete in ~12-14 seconds with realistic timing
+        runDemo();
+            // Schedule next run after demo completes (approximately every 15 seconds)
+            function scheduleNext() {
+                demoInterval = setTimeout(() => {
+                    if (isAutomated) {
+                        runDemo();
+                        scheduleNext();
+                    }
+                }, 15000);
+            }
+            scheduleNext();
+        }
+
+        // Initial demo start
+        startAutoDemo();
+    </script>
+</body>
+</html>
