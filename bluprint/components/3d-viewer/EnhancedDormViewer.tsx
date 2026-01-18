@@ -171,7 +171,8 @@ function CeilingLight() {
 
 function AdaptiveWalls() {
   const { camera } = useThree();
-  const [opacities, setOpacities] = useState({ front: 0.05, back: 1, left: 1, right: 1 });
+  const [opacities, setOpacities] = useState({ front: 1, back: 1, left: 1, right: 1 });
+  const [debugWall, setDebugWall] = useState<string>('none');
 
   const wallRefs = {
     front: useRef<THREE.Mesh>(null),
@@ -184,23 +185,72 @@ function AdaptiveWalls() {
     if (!camera) return;
 
     const roomCenter = new THREE.Vector3(0, DIMENSIONS.height / 2, 0);
-    const cameraToRoom = new THREE.Vector3().subVectors(roomCenter, camera.position).normalize();
+    const cameraPos = camera.position;
 
-    // Calculate which wall is most blocking the view
+    // Vector from room center to camera
+    const dx = cameraPos.x - roomCenter.x;
+    const dz = cameraPos.z - roomCenter.z;
+
+    // Determine which wall is between camera and room interior
+    let targetOpacities = { front: 1, back: 1, left: 1, right: 1 };
+    let fadingWall = 'none';
+
+    if (Math.abs(dx) > Math.abs(dz)) {
+      // Camera is more to the left or right
+      if (dx > 0) {
+        // Camera on +X side, fade right wall
+        targetOpacities.right = 0.12;
+        fadingWall = '+X (right)';
+      } else {
+        // Camera on -X side, fade left wall
+        targetOpacities.left = 0.12;
+        fadingWall = '-X (left)';
+      }
+    } else {
+      // Camera is more to the front or back
+      if (dz > 0) {
+        // Camera on +Z side, fade front wall
+        targetOpacities.front = 0.12;
+        fadingWall = '+Z (front)';
+      } else {
+        // Camera on -Z side, fade back wall
+        targetOpacities.back = 0.12;
+        fadingWall = '-Z (back)';
+      }
+    }
+
+    // Smooth lerp to target opacities (0.08 = transition speed, higher = faster)
     const newOpacities = {
-      front: cameraToRoom.z > 0.4 ? THREE.MathUtils.lerp(opacities.front, 0.05, 0.1) : THREE.MathUtils.lerp(opacities.front, 1, 0.1),
-      back: cameraToRoom.z < -0.4 ? THREE.MathUtils.lerp(opacities.back, 0.05, 0.1) : THREE.MathUtils.lerp(opacities.back, 1, 0.1),
-      left: cameraToRoom.x < -0.4 ? THREE.MathUtils.lerp(opacities.left, 0.05, 0.1) : THREE.MathUtils.lerp(opacities.left, 1, 0.1),
-      right: cameraToRoom.x > 0.4 ? THREE.MathUtils.lerp(opacities.right, 0.05, 0.1) : THREE.MathUtils.lerp(opacities.right, 1, 0.1),
+      front: THREE.MathUtils.lerp(opacities.front, targetOpacities.front, 0.08),
+      back: THREE.MathUtils.lerp(opacities.back, targetOpacities.back, 0.08),
+      left: THREE.MathUtils.lerp(opacities.left, targetOpacities.left, 0.08),
+      right: THREE.MathUtils.lerp(opacities.right, targetOpacities.right, 0.08),
     };
 
     setOpacities(newOpacities);
+    if (fadingWall !== debugWall) setDebugWall(fadingWall);
 
     // Apply to materials
-    if (wallRefs.front.current) (wallRefs.front.current.material as THREE.MeshStandardMaterial).opacity = newOpacities.front;
-    if (wallRefs.back.current) (wallRefs.back.current.material as THREE.MeshStandardMaterial).opacity = newOpacities.back;
-    if (wallRefs.left.current) (wallRefs.left.current.material as THREE.MeshStandardMaterial).opacity = newOpacities.left;
-    if (wallRefs.right.current) (wallRefs.right.current.material as THREE.MeshStandardMaterial).opacity = newOpacities.right;
+    if (wallRefs.front.current) {
+      const mat = wallRefs.front.current.material as THREE.MeshStandardMaterial;
+      mat.opacity = newOpacities.front;
+      mat.depthWrite = newOpacities.front > 0.5;
+    }
+    if (wallRefs.back.current) {
+      const mat = wallRefs.back.current.material as THREE.MeshStandardMaterial;
+      mat.opacity = newOpacities.back;
+      mat.depthWrite = newOpacities.back > 0.5;
+    }
+    if (wallRefs.left.current) {
+      const mat = wallRefs.left.current.material as THREE.MeshStandardMaterial;
+      mat.opacity = newOpacities.left;
+      mat.depthWrite = newOpacities.left > 0.5;
+    }
+    if (wallRefs.right.current) {
+      const mat = wallRefs.right.current.material as THREE.MeshStandardMaterial;
+      mat.opacity = newOpacities.right;
+      mat.depthWrite = newOpacities.right > 0.5;
+    }
   });
 
   const wallMaterial = (opacity: number) => (
@@ -209,32 +259,32 @@ function AdaptiveWalls() {
       transparent
       opacity={opacity}
       roughness={0.9}
-      side={THREE.DoubleSide}
+      side={THREE.FrontSide}
       depthWrite={opacity > 0.5}
     />
   );
 
   return (
     <group>
-      {/* Back wall (with window) */}
+      {/* Back wall (-Z, with window) */}
       <mesh ref={wallRefs.back} position={[0, DIMENSIONS.height / 2, -DIMENSIONS.depth / 2]} receiveShadow>
         <boxGeometry args={[DIMENSIONS.width, DIMENSIONS.height, DIMENSIONS.wallThickness]} />
         {wallMaterial(opacities.back)}
       </mesh>
 
-      {/* Front wall */}
+      {/* Front wall (+Z) */}
       <mesh ref={wallRefs.front} position={[0, DIMENSIONS.height / 2, DIMENSIONS.depth / 2]} receiveShadow>
         <boxGeometry args={[DIMENSIONS.width, DIMENSIONS.height, DIMENSIONS.wallThickness]} />
         {wallMaterial(opacities.front)}
       </mesh>
 
-      {/* Left wall */}
+      {/* Left wall (-X) */}
       <mesh ref={wallRefs.left} position={[-DIMENSIONS.width / 2, DIMENSIONS.height / 2, 0]} receiveShadow>
         <boxGeometry args={[DIMENSIONS.wallThickness, DIMENSIONS.height, DIMENSIONS.depth]} />
         {wallMaterial(opacities.left)}
       </mesh>
 
-      {/* Right wall (long blank wall) */}
+      {/* Right wall (+X, long blank wall) */}
       <mesh ref={wallRefs.right} position={[DIMENSIONS.width / 2, DIMENSIONS.height / 2, 0]} receiveShadow>
         <boxGeometry args={[DIMENSIONS.wallThickness, DIMENSIONS.height, DIMENSIONS.depth]} />
         {wallMaterial(opacities.right)}
