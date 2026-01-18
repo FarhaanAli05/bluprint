@@ -134,11 +134,11 @@ function TileFloor() {
         <meshStandardMaterial color={COLORS.floorTile} roughness={0.6} metalness={0.05} />
       </mesh>
 
-      {/* Tile grout lines - diagonal pattern */}
+      {/* Tile grout lines - diagonal pattern (rendered as flat on floor) */}
       {groutLines.map((line, i) => (
         <mesh
           key={`grout-${i}`}
-          rotation={[-Math.PI / 2, line.angle, 0]}
+          rotation={[-Math.PI / 2, 0, line.angle]}
           position={line.center}
           receiveShadow
         >
@@ -651,10 +651,279 @@ function Staircase() {
         </mesh>
       </group>
 
-      {/* Under-stair storage opening */}
-      <mesh position={[-stairWidth / 2 - 0.5, 2, 2]} castShadow>
-        <boxGeometry args={[2, 4, 0.1]} />
-        <meshStandardMaterial color={COLORS.wallPaint} roughness={0.9} />
+    </group>
+  );
+}
+
+// ============================================================
+// DINING TABLE
+// ============================================================
+
+function DiningTable({ position }: { position: [number, number, number] }) {
+  const tableWidth = 4;
+  const tableDepth = 2.2;
+  const tableHeight = 2.5;
+  const topThickness = 0.12;
+  const legSize = 0.15;
+
+  return (
+    <group position={position}>
+      {/* Table top */}
+      <mesh position={[0, tableHeight, 0]} castShadow receiveShadow>
+        <boxGeometry args={[tableWidth, topThickness, tableDepth]} />
+        <meshStandardMaterial color="#5C4033" roughness={0.4} metalness={0.05} />
+      </mesh>
+
+      {/* Table legs */}
+      {[
+        [-tableWidth / 2 + legSize, tableHeight / 2, -tableDepth / 2 + legSize],
+        [tableWidth / 2 - legSize, tableHeight / 2, -tableDepth / 2 + legSize],
+        [-tableWidth / 2 + legSize, tableHeight / 2, tableDepth / 2 - legSize],
+        [tableWidth / 2 - legSize, tableHeight / 2, tableDepth / 2 - legSize],
+      ].map((pos, i) => (
+        <mesh key={`leg-${i}`} position={pos as [number, number, number]} castShadow>
+          <boxGeometry args={[legSize, tableHeight, legSize]} />
+          <meshStandardMaterial color="#4A3728" roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ============================================================
+// DINING CHAIR
+// ============================================================
+
+function DiningChair({ position, rotation = 0 }: { position: [number, number, number]; rotation?: number }) {
+  const seatHeight = 1.5;
+  const seatWidth = 1.2;
+  const seatDepth = 1.2;
+  const backHeight = 1.8;
+  const legSize = 0.1;
+
+  return (
+    <group position={position} rotation={[0, rotation, 0]}>
+      {/* Seat */}
+      <mesh position={[0, seatHeight, 0]} castShadow>
+        <boxGeometry args={[seatWidth, 0.1, seatDepth]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.5} />
+      </mesh>
+
+      {/* Back */}
+      <mesh position={[0, seatHeight + backHeight / 2, -seatDepth / 2 + 0.05]} castShadow>
+        <boxGeometry args={[seatWidth, backHeight, 0.1]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.5} />
+      </mesh>
+
+      {/* Back slats */}
+      {[-0.35, 0, 0.35].map((x, i) => (
+        <mesh key={`slat-${i}`} position={[x, seatHeight + backHeight / 2, -seatDepth / 2 + 0.08]} castShadow>
+          <boxGeometry args={[0.15, backHeight - 0.3, 0.05]} />
+          <meshStandardMaterial color="#6B4423" roughness={0.5} />
+        </mesh>
+      ))}
+
+      {/* Legs */}
+      {[
+        [-seatWidth / 2 + legSize, seatHeight / 2, -seatDepth / 2 + legSize],
+        [seatWidth / 2 - legSize, seatHeight / 2, -seatDepth / 2 + legSize],
+        [-seatWidth / 2 + legSize, seatHeight / 2, seatDepth / 2 - legSize],
+        [seatWidth / 2 - legSize, seatHeight / 2, seatDepth / 2 - legSize],
+      ].map((pos, i) => (
+        <mesh key={`chair-leg-${i}`} position={pos as [number, number, number]} castShadow>
+          <boxGeometry args={[legSize, seatHeight, legSize]} />
+          <meshStandardMaterial color="#5C4033" roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ============================================================
+// PLATE
+// ============================================================
+
+function Plate({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Plate base */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.35, 0.38, 0.04, 24]} />
+        <meshStandardMaterial color="#FAF9F6" roughness={0.3} metalness={0.1} />
+      </mesh>
+      {/* Plate rim */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <torusGeometry args={[0.35, 0.02, 8, 24]} />
+        <meshStandardMaterial color="#E8E6E3" roughness={0.3} />
+      </mesh>
+    </group>
+  );
+}
+
+// ============================================================
+// CAT TOWER
+// ============================================================
+
+function CatTower({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Base */}
+      <mesh position={[0, 0.1, 0]} castShadow>
+        <boxGeometry args={[1.5, 0.2, 1.5]} />
+        <meshStandardMaterial color="#D2B48C" roughness={0.9} />
+      </mesh>
+
+      {/* Main post */}
+      <mesh position={[0, 1.5, 0]} castShadow>
+        <cylinderGeometry args={[0.15, 0.15, 2.8, 12]} />
+        <meshStandardMaterial color="#C4A574" roughness={0.95} />
+      </mesh>
+
+      {/* Lower platform */}
+      <mesh position={[0.4, 1.2, 0]} castShadow>
+        <boxGeometry args={[1, 0.15, 1]} />
+        <meshStandardMaterial color="#D2B48C" roughness={0.85} />
+      </mesh>
+
+      {/* Middle platform */}
+      <mesh position={[-0.3, 2.2, 0.2]} castShadow>
+        <boxGeometry args={[1.2, 0.15, 0.9]} />
+        <meshStandardMaterial color="#D2B48C" roughness={0.85} />
+      </mesh>
+
+      {/* Top perch */}
+      <mesh position={[0, 3, 0]} castShadow>
+        <cylinderGeometry args={[0.5, 0.45, 0.15, 16]} />
+        <meshStandardMaterial color="#D2B48C" roughness={0.85} />
+      </mesh>
+
+      {/* Secondary post */}
+      <mesh position={[0.5, 0.7, 0.3]} castShadow>
+        <cylinderGeometry args={[0.1, 0.1, 1.2, 12]} />
+        <meshStandardMaterial color="#C4A574" roughness={0.95} />
+      </mesh>
+    </group>
+  );
+}
+
+// ============================================================
+// POTTED PLANT
+// ============================================================
+
+function PottedPlant({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Pot */}
+      <mesh position={[0, 0.4, 0]} castShadow>
+        <cylinderGeometry args={[0.35, 0.25, 0.8, 12]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.8} />
+      </mesh>
+
+      {/* Soil */}
+      <mesh position={[0, 0.75, 0]}>
+        <cylinderGeometry args={[0.32, 0.32, 0.1, 12]} />
+        <meshStandardMaterial color="#3D2817" roughness={0.95} />
+      </mesh>
+
+      {/* Main stem */}
+      <mesh position={[0, 1.5, 0]} castShadow>
+        <cylinderGeometry args={[0.05, 0.08, 1.5, 8]} />
+        <meshStandardMaterial color="#228B22" roughness={0.7} />
+      </mesh>
+
+      {/* Leaves */}
+      {[
+        { pos: [0.3, 1.8, 0], rot: [0, 0, -0.5] },
+        { pos: [-0.3, 1.9, 0.1], rot: [0.2, 0, 0.6] },
+        { pos: [0.1, 2.1, -0.3], rot: [-0.3, 0.5, -0.2] },
+        { pos: [-0.2, 2.0, 0.25], rot: [0.4, -0.3, 0.4] },
+        { pos: [0.25, 2.2, 0.15], rot: [0.2, 0.2, -0.3] },
+        { pos: [0, 2.3, 0], rot: [0, 0, 0] },
+      ].map((leaf, i) => (
+        <mesh
+          key={`leaf-${i}`}
+          position={leaf.pos as [number, number, number]}
+          rotation={leaf.rot as [number, number, number]}
+          castShadow
+        >
+          <sphereGeometry args={[0.25, 8, 6]} />
+          <meshStandardMaterial color="#2E8B57" roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ============================================================
+// WALL PAINTING (Van Gogh - Cafe Terrace placeholder)
+// ============================================================
+
+function WallPainting({ position, rotation = 0 }: { position: [number, number, number]; rotation?: number }) {
+  // Create a simple procedural "painting" texture representing Cafe Terrace at Night
+  const canvasTexture = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 320;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      // Night sky - deep blue gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, 160);
+      skyGrad.addColorStop(0, '#0a1a3a');
+      skyGrad.addColorStop(1, '#1a3a5a');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, 256, 160);
+
+      // Stars
+      ctx.fillStyle = '#FFD700';
+      for (let i = 0; i < 20; i++) {
+        const x = Math.random() * 256;
+        const y = Math.random() * 140;
+        const r = 2 + Math.random() * 4;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Cafe terrace (warm yellow/orange area)
+      const cafeGrad = ctx.createLinearGradient(80, 160, 180, 320);
+      cafeGrad.addColorStop(0, '#FFD54F');
+      cafeGrad.addColorStop(1, '#FF8F00');
+      ctx.fillStyle = cafeGrad;
+      ctx.fillRect(80, 140, 100, 180);
+
+      // Cobblestone street
+      ctx.fillStyle = '#4A4A6A';
+      ctx.fillRect(0, 200, 80, 120);
+      ctx.fillRect(180, 200, 76, 120);
+
+      // Building silhouettes
+      ctx.fillStyle = '#1a2a4a';
+      ctx.fillRect(0, 100, 60, 100);
+      ctx.fillRect(200, 80, 56, 120);
+
+      // Tables suggestion
+      ctx.fillStyle = '#8B4513';
+      for (let i = 0; i < 3; i++) {
+        ctx.fillRect(90 + i * 25, 250 + i * 15, 15, 10);
+      }
+    }
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    return texture;
+  }, []);
+
+  return (
+    <group position={position} rotation={[0, rotation, 0]}>
+      {/* Frame */}
+      <mesh castShadow>
+        <boxGeometry args={[2.2, 2.8, 0.12]} />
+        <meshStandardMaterial color="#4A3728" roughness={0.6} />
+      </mesh>
+
+      {/* Canvas/Painting */}
+      <mesh position={[0, 0, 0.07]}>
+        <planeGeometry args={[1.9, 2.5]} />
+        <meshBasicMaterial map={canvasTexture} />
       </mesh>
     </group>
   );
@@ -695,6 +964,7 @@ interface SceneProps {
   showBlueprint: boolean;
   showShadows: boolean;
   autoRotate: boolean;
+  demoStage: number; // 0 = initial (table + 1 chair + plates), 1 = full chairs, 2 = cozy items added
 }
 
 function BlueprintGrid({ size = 50, divisions = 50 }: { size?: number; divisions?: number }) {
@@ -706,7 +976,7 @@ function BlueprintGrid({ size = 50, divisions = 50 }: { size?: number; divisions
   );
 }
 
-function Scene({ sceneObjects, onSelect, showGrid, showBlueprint, showShadows, autoRotate }: SceneProps) {
+function Scene({ showGrid, showBlueprint, showShadows, autoRotate, demoStage }: SceneProps) {
   const controlsRef = useRef<any>(null);
   const { camera } = useThree();
   const initialCameraPos = useRef(new THREE.Vector3(14, 8, 14));
@@ -787,6 +1057,41 @@ function Scene({ sceneObjects, onSelect, showGrid, showBlueprint, showShadows, a
       <CeilingLight position={[5, DIMENSIONS.height - 0.1, 3]} />
       <CeilingLight position={[-5, DIMENSIONS.height - 0.1, -3]} />
 
+      {/* Dining Table - always visible, centered in room */}
+      <DiningTable position={[0, 0, 0]} />
+
+      {/* Plates on table - always visible (4 plates) */}
+      <Plate position={[-1.2, 2.58, -0.5]} />
+      <Plate position={[1.2, 2.58, -0.5]} />
+      <Plate position={[-1.2, 2.58, 0.5]} />
+      <Plate position={[1.2, 2.58, 0.5]} />
+
+      {/* Initial single chair - always visible */}
+      <DiningChair position={[0, 0, -2]} rotation={0} />
+
+      {/* Additional chairs - visible after first prompt (demoStage >= 1) */}
+      {demoStage >= 1 && (
+        <>
+          <DiningChair position={[0, 0, 2]} rotation={Math.PI} />
+          <DiningChair position={[-2.8, 0, 0]} rotation={Math.PI / 2} />
+          <DiningChair position={[2.8, 0, 0]} rotation={-Math.PI / 2} />
+        </>
+      )}
+
+      {/* Cozy items - visible after second prompt (demoStage >= 2) */}
+      {demoStage >= 2 && (
+        <>
+          {/* Cat tower near back wall, left side */}
+          <CatTower position={[-6, 0, -5]} />
+
+          {/* Potted plant near fireplace */}
+          <PottedPlant position={[-5, 0, 3]} />
+
+          {/* Painting on back wall */}
+          <WallPainting position={[4, 4.5, -DIMENSIONS.depth / 2 + 0.2]} rotation={0} />
+        </>
+      )}
+
       {/* Blueprint mode overlay */}
       {showBlueprint && (
         <mesh position={[0, DIMENSIONS.height / 2, 0]}>
@@ -840,6 +1145,7 @@ interface LivingRoomViewerProps {
   showBlueprint?: boolean;
   showShadows?: boolean;
   autoRotate?: boolean;
+  demoStage?: number;
 }
 
 export default function LivingRoomViewer({
@@ -850,6 +1156,7 @@ export default function LivingRoomViewer({
   showBlueprint = false,
   showShadows = true,
   autoRotate = false,
+  demoStage = 0,
 }: LivingRoomViewerProps) {
   const cameraConfig = useMemo(
     () => ({
@@ -883,6 +1190,7 @@ export default function LivingRoomViewer({
             showBlueprint={showBlueprint}
             showShadows={showShadows}
             autoRotate={autoRotate}
+            demoStage={demoStage}
           />
         </Canvas>
       </Suspense>

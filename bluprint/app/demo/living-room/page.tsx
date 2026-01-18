@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { initialLivingRoomState, SceneObject, ChatMessage, parseCommand, LIVING_ROOM } from "@/lib/livingRoomState";
+import { initialLivingRoomState, SceneObject, ChatMessage } from "@/lib/livingRoomState";
 import ChatbotPanel from "@/components/3d-viewer/ChatbotPanel";
 import TopHeader from "@/components/shared/TopHeader";
-import { useChatDemo } from "@/hooks/useChatDemo";
-import { useResetDemo } from "@/hooks/useResetDemo";
+import { TYPING_INDICATOR_TOKEN } from "@/components/3d-viewer/ChatbotPanel";
 
 // Dynamic import to avoid SSR issues with Three.js
 const LivingRoomViewer = dynamic(
@@ -24,6 +23,13 @@ const LivingRoomViewer = dynamic(
   }
 );
 
+// Staged demo responses
+const DEMO_RESPONSES = [
+  "I've added more chairs around the dining table to complete the set. Now you have a proper dining area for the whole family!",
+  "I've made the room cozier by adding a cat tower, a beautiful potted plant, and a painting of Van Gogh's 'Cafe Terrace at Night' on the wall. The space feels much more lived-in now!",
+  "The room is looking great! Feel free to ask me about arranging other furniture or making any changes you'd like.",
+];
+
 export default function LivingRoomDemoPage() {
   const [sceneObjects, setSceneObjects] = useState<SceneObject[]>(initialLivingRoomState);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -33,21 +39,42 @@ export default function LivingRoomDemoPage() {
   const [showShadows, setShowShadows] = useState(true);
   const [autoRotate, setAutoRotate] = useState(false);
   const [chatTurn, setChatTurn] = useState(0);
+  const [demoStage, setDemoStage] = useState(0);
+  const [isChatBusy, setIsChatBusy] = useState(false);
+  const chatTimeoutsRef = useRef<number[]>([]);
 
-  // Use shared chat demo hook
-  const { isChatBusy, sendMessageWithDelay, clearAllTimeouts, setIsChatBusy } = useChatDemo();
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      chatTimeoutsRef.current.forEach((timeoutId) => {
+        clearTimeout(timeoutId);
+      });
+      chatTimeoutsRef.current = [];
+    };
+  }, []);
 
-  // Use shared reset demo hook
-  const { handleResetDemo } = useResetDemo({
-    setIsChatBusy,
-    setChatTurn,
-    setMessages,
-    setSelectedId,
-    setSceneObjects,
-    setInventoryUnlocked: () => {}, // No inventory in living room
-    clearAllTimeouts,
-    initialState: initialLivingRoomState, // Empty array for living room
-  });
+  const scheduleTimeout = (callback: () => void, delay: number) => {
+    const timeoutId = window.setTimeout(callback, delay);
+    chatTimeoutsRef.current.push(timeoutId);
+    return timeoutId;
+  };
+
+  const clearAllTimeouts = () => {
+    chatTimeoutsRef.current.forEach((timeoutId) => {
+      clearTimeout(timeoutId);
+    });
+    chatTimeoutsRef.current = [];
+  };
+
+  const handleResetDemo = () => {
+    clearAllTimeouts();
+    setIsChatBusy(false);
+    setChatTurn(0);
+    setDemoStage(0);
+    setMessages([]);
+    setSelectedId(null);
+    setSceneObjects(initialLivingRoomState);
+  };
 
   const handleSendMessage = (content: string) => {
     if (isChatBusy) {
@@ -61,16 +88,64 @@ export default function LivingRoomDemoPage() {
       timestamp: Date.now(),
     };
 
-    const result = parseCommand(content, sceneObjects);
-    sendMessageWithDelay(userMessage, result.message, setMessages);
+    // Random delay between 3000-5000ms
+    const delayMs = 3000 + Math.floor(Math.random() * 2001);
+    const assistantId = `msg-${Date.now() + 1}`;
+    const currentTurn = chatTurn;
 
-    // Apply scene updates if command was successful
-    if (result.success && result.updatedObjects) {
-      const updatedObjects = result.updatedObjects;
-      setTimeout(() => {
-        setSceneObjects(updatedObjects);
-      }, 3000 + Math.floor(Math.random() * 2001) + 500);
-    }
+    // Get the appropriate response based on current turn
+    const responseText = DEMO_RESPONSES[Math.min(currentTurn, DEMO_RESPONSES.length - 1)];
+
+    setIsChatBusy(true);
+    setChatTurn((prev) => prev + 1);
+
+    // Add user message and typing indicator immediately
+    setMessages((prev) => [
+      ...prev,
+      userMessage,
+      {
+        id: assistantId,
+        role: 'assistant',
+        content: TYPING_INDICATOR_TOKEN,
+        timestamp: Date.now() + 1,
+      },
+    ]);
+
+    // After delay, update scene stage (before starting to type response)
+    scheduleTimeout(() => {
+      // Update demo stage based on turn
+      if (currentTurn === 0) {
+        setDemoStage(1); // Add chairs
+      } else if (currentTurn === 1) {
+        setDemoStage(2); // Add cozy items
+      }
+
+      // Start streaming words
+      const words = responseText.split(/\s+/).filter(Boolean);
+      let index = 0;
+
+      const tick = () => {
+        index += 1;
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantId
+              ? { ...msg, content: words.slice(0, index).join(' ') }
+              : msg
+          )
+        );
+
+        if (index >= words.length) {
+          setIsChatBusy(false);
+          return;
+        }
+
+        const jitter = 80 + Math.floor(Math.random() * 61);
+        scheduleTimeout(tick, jitter);
+      };
+
+      const streamInterval = 80 + Math.floor(Math.random() * 61);
+      scheduleTimeout(tick, streamInterval);
+    }, delayMs);
   };
 
   const handleResetView = () => {
@@ -133,6 +208,7 @@ export default function LivingRoomDemoPage() {
             showBlueprint={showBlueprint}
             showShadows={showShadows}
             autoRotate={autoRotate}
+            demoStage={demoStage}
           />
 
           {/* Selected object info */}
