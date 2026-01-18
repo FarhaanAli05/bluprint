@@ -218,7 +218,10 @@ export default function MyBluprintsPage() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
-                      <Link href={`/${blueprint.slug}`} className="flex-1">
+                      <Link
+                        href={blueprint.isDemo ? `/${blueprint.slug}` : `/projects/${blueprint.slug}`}
+                        className="flex-1"
+                      >
                         <GlassButton variant="default" className="w-full flex items-center justify-center gap-2 text-sm py-2.5">
                           <ExternalLink className="w-4 h-4" />
                           Open

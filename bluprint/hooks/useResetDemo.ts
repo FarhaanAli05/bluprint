@@ -8,6 +8,7 @@ interface UseResetDemoOptions {
   setSceneObjects: React.Dispatch<React.SetStateAction<SceneObject[]>>;
   setInventoryUnlocked: (unlocked: boolean) => void;
   clearAllTimeouts: () => void;
+  initialState?: SceneObject[]; // Optional initial state, defaults to dorm room state
 }
 
 /**
@@ -26,6 +27,7 @@ export function useResetDemo({
   setSceneObjects,
   setInventoryUnlocked,
   clearAllTimeouts,
+  initialState = initialSceneState,
 }: UseResetDemoOptions) {
   const resetDemoState = () => {
     clearAllTimeouts();
@@ -33,7 +35,7 @@ export function useResetDemo({
     setChatTurn(0);
     setMessages([]);
     setSelectedId(null);
-    setSceneObjects(initialSceneState);
+    setSceneObjects(initialState);
     setInventoryUnlocked(false);
   };
 
