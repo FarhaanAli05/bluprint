@@ -175,7 +175,7 @@ export default function DormRoomDemoPage() {
             <div className="border-b border-white/10 bg-slate-900/50 px-4 py-3">
               <h2 className="text-sm font-semibold text-white">Inventory</h2>
               <p className="mt-0.5 text-xs text-slate-400">
-                {sceneObjects.length} items in room
+                {sceneObjects.filter(obj => obj.type === 'bookshelf').length} {sceneObjects.filter(obj => obj.type === 'bookshelf').length === 1 ? 'item' : 'items'} in room
               </p>
             </div>
             <InventoryPanel onAddItem={handleAddItem} showBookshelf={inventoryUnlocked} />
@@ -226,7 +226,7 @@ export default function DormRoomDemoPage() {
         </div>
 
         {/* Right Sidebar - Chatbot */}
-        <div className="w-80 flex-shrink-0 border-l border-white/10 bg-slate-900/30">
+        <div className="w-80 h-full flex-shrink-0 border-l border-white/10 bg-slate-900/30 flex flex-col">
           <ChatbotPanel
             messages={messages}
             onSendMessage={handleSendMessage}

@@ -745,7 +745,8 @@ function Wardrobe({ position, rotation }: { position: [number, number, number]; 
 
 function Bookshelf({ position, rotation }: { position: [number, number, number]; rotation: number }) {
   // Use the new Billy-style bookshelf from assets
-  return <BillyBookshelf position={position} rotation={rotation} />;
+  // Scale up 3x to match room scale (Billy is 2.02m, wardrobe is 6ft ~ similar height)
+  return <BillyBookshelf position={position} rotation={rotation} scale={3} />;
 }
 
 // ============================================================
