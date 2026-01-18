@@ -28,6 +28,10 @@ const FURNITURE_SIZES = {
   radiator: { width: 3.5, height: 1.2, depth: 0.4 },
 };
 
+// Color constants matching the previous better model
+const WALL_COLOR = "#F5F5F0";  // Warm cream/off-white
+const CEILING_COLOR = "#FAFAF5";  // Slightly lighter cream
+
 // ============================================================
 // MATERIALS
 // ============================================================
@@ -110,7 +114,7 @@ function Ceiling() {
       {/* Main ceiling */}
       <mesh position={[0, DIMENSIONS.height, 0]} receiveShadow>
         <boxGeometry args={[DIMENSIONS.width, 0.15, DIMENSIONS.depth]} />
-        <meshStandardMaterial color="#FAFAFA" roughness={0.95} />
+        <meshStandardMaterial color={CEILING_COLOR} roughness={0.95} />
       </mesh>
 
       {/* Ceiling panel lines - create drop tile effect */}
@@ -201,7 +205,7 @@ function AdaptiveWalls() {
 
   const wallMaterial = (opacity: number) => (
     <meshStandardMaterial
-      color="#F5F5F0"
+      color={WALL_COLOR}
       transparent
       opacity={opacity}
       roughness={0.9}
@@ -287,7 +291,7 @@ function Radiator() {
   const r = FURNITURE_SIZES.radiator;
 
   return (
-    <group position={[1.5, r.height / 2 + 0.1, -DIMENSIONS.depth / 2 + r.depth / 2 + 0.25]}>
+    <group position={[1.5, r.height / 2 + 0.1, -DIMENSIONS.depth / 2 + r.depth / 2 + 0.3]}>
       {/* Main radiator body */}
       <mesh castShadow>
         <boxGeometry args={[r.width, r.height, r.depth]} />
@@ -301,6 +305,30 @@ function Radiator() {
           <meshStandardMaterial color="#CCCCCC" />
         </mesh>
       ))}
+    </group>
+  );
+}
+
+function WallPainting() {
+  return (
+    <group position={[DIMENSIONS.width / 2 - 0.08, 5, 2]}>
+      {/* Frame */}
+      <mesh castShadow>
+        <boxGeometry args={[0.05, 1.8, 1.4]} />
+        <meshStandardMaterial color="#2C2416" roughness={0.6} />
+      </mesh>
+
+      {/* Mat */}
+      <mesh position={[-0.03, 0, 0]}>
+        <boxGeometry args={[0.02, 1.5, 1.1]} />
+        <meshStandardMaterial color="#F5F5F0" roughness={0.9} />
+      </mesh>
+
+      {/* Image */}
+      <mesh position={[-0.04, 0, 0]}>
+        <boxGeometry args={[0.01, 1.2, 0.9]} />
+        <meshStandardMaterial color="#8B7355" roughness={0.7} />
+      </mesh>
     </group>
   );
 }
@@ -681,6 +709,7 @@ function Scene({ sceneObjects, onSelect }: SceneProps) {
       <WindowUnit />
       <Radiator />
       <CorkBoard />
+      <WallPainting />
 
       {/* Furniture from state */}
       {sceneObjects.map(renderFurniture)}

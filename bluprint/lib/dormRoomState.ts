@@ -70,9 +70,9 @@ export const initialSceneState: SceneObject[] = [
     id: 'shelf-1',
     type: 'shelf',
     name: 'Wardrobe',
-    // Left side near front (photo 2)
-    position: [-ROOM.width / 2 + 2, 0, ROOM.depth / 2 - 1.2],
-    rotation: 0,
+    // Left side near front (photo 2) - shelves facing into room
+    position: [-ROOM.width / 2 + 2, 0, ROOM.depth / 2 - 1.05],
+    rotation: Math.PI, // 180° so shelves face inward
   },
 ];
 
