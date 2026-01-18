@@ -31,44 +31,48 @@ export const furnitureInventory: FurnitureItem[] = [
   { id: 'shelf-item', type: 'shelf', name: 'Wardrobe', dimensions: '4\' × 2\'', color: 'Oak with shelving' },
 ];
 
-// Room dimensions
+// Room dimensions (matching photos - standard dorm room)
 export const ROOM = {
   width: 12,
   depth: 14,
   height: 9,
-  wallThickness: 0.3,
+  wallThickness: 0.15,
   baseboardHeight: 0.4,
 };
 
-// Initial scene state with repositioned furniture
+// Initial scene state - positioned to match reference photos
 export const initialSceneState: SceneObject[] = [
   {
     id: 'bed-1',
     type: 'bed',
     name: 'Twin Bed',
-    position: [-ROOM.width / 2 + 1.75, 0, -ROOM.depth / 2 + 3.5], // Pushed to back wall
-    rotation: 0,
+    // Left wall, near back corner (as in photo 2)
+    position: [-ROOM.width / 2 + 2, 0, -ROOM.depth / 2 + 3.5],
+    rotation: 0, // Headboard toward back wall
   },
   {
     id: 'desk-1',
     type: 'desk',
     name: 'Desk with Hutch',
-    position: [ROOM.width / 2 - 2.5, 0, -ROOM.depth / 2 + 1.5],
+    // Right side, near window (as in photos 1 & 3)
+    position: [ROOM.width / 2 - 2.3, 0, -ROOM.depth / 2 + 1.5],
     rotation: 0,
   },
   {
     id: 'chair-1',
     type: 'chair',
     name: 'Office Chair',
-    position: [ROOM.width / 2 - 3, 0, 0.5], // At desk
+    // At desk, facing inward (photo 1)
+    position: [ROOM.width / 2 - 2.3, 0, -ROOM.depth / 2 + 3.5],
     rotation: Math.PI, // Facing desk
   },
   {
     id: 'shelf-1',
     type: 'shelf',
     name: 'Wardrobe',
-    position: [ROOM.width / 2 - 2, 0, ROOM.depth / 2 - 1.2], // Opposite bed
-    rotation: Math.PI, // Facing bed
+    // Left side near front (photo 2)
+    position: [-ROOM.width / 2 + 2, 0, ROOM.depth / 2 - 1.2],
+    rotation: 0,
   },
 ];
 
