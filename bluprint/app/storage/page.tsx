@@ -43,7 +43,7 @@ interface FurnitureItem {
 // Storage key for furniture items
 const FURNITURE_STORAGE_KEY = "bluprint_furniture";
 
-const categoryIcons: Record<string, React.ElementType> = {
+const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   sofa: Sofa,
   bed: Bed,
   lamp: Lamp,

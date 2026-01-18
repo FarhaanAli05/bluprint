@@ -1,14 +1,14 @@
-import { ChatMessage, SceneObject, initialSceneState } from "@/lib/dormRoomState";
+import { ChatMessage as DormChatMessage, SceneObject as DormSceneObject, initialSceneState } from "@/lib/dormRoomState";
 
-interface UseResetDemoOptions {
+interface UseResetDemoOptions<TSceneObject, TChatMessage> {
   setIsChatBusy: (busy: boolean) => void;
   setChatTurn: (turn: number) => void;
-  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+  setMessages: React.Dispatch<React.SetStateAction<TChatMessage[]>>;
   setSelectedId: (id: string | null) => void;
-  setSceneObjects: React.Dispatch<React.SetStateAction<SceneObject[]>>;
+  setSceneObjects: React.Dispatch<React.SetStateAction<TSceneObject[]>>;
   setInventoryUnlocked: (unlocked: boolean) => void;
   clearAllTimeouts: () => void;
-  initialState?: SceneObject[]; // Optional initial state, defaults to dorm room state
+  initialState?: TSceneObject[]; // Optional initial state, defaults to dorm room state
 }
 
 /**
@@ -19,7 +19,7 @@ interface UseResetDemoOptions {
  * - Clears inventory/unlock state
  * - Calls API to reset server state
  */
-export function useResetDemo({
+export function useResetDemo<TSceneObject = DormSceneObject, TChatMessage = DormChatMessage>({
   setIsChatBusy,
   setChatTurn,
   setMessages,
@@ -27,8 +27,8 @@ export function useResetDemo({
   setSceneObjects,
   setInventoryUnlocked,
   clearAllTimeouts,
-  initialState = initialSceneState,
-}: UseResetDemoOptions) {
+  initialState = initialSceneState as TSceneObject[],
+}: UseResetDemoOptions<TSceneObject, TChatMessage>) {
   const resetDemoState = () => {
     clearAllTimeouts();
     setIsChatBusy(false);

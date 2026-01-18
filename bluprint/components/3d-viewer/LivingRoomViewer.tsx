@@ -43,8 +43,88 @@ function StoneMaterial({ variant = 'primary' }: { variant?: 'primary' | 'mixed' 
 
 function TileFloor() {
   const tileSize = 1.5;
-  const tilesX = Math.ceil(DIMENSIONS.width / tileSize);
-  const tilesZ = Math.ceil(DIMENSIONS.depth / tileSize);
+  const groutLines = useMemo(() => {
+    const halfWidth = DIMENSIONS.width / 2;
+    const halfDepth = DIMENSIONS.depth / 2;
+    const bounds = {
+      xmin: -halfWidth,
+      xmax: halfWidth,
+      zmin: -halfDepth,
+      zmax: halfDepth,
+    };
+    const spacing = tileSize;
+    const deltaC = spacing * Math.SQRT2;
+    const lines: Array<{ center: [number, number, number]; length: number; angle: number }> = [];
+
+    const collectLine = (m: 1 | -1, c: number) => {
+      const points: Array<[number, number]> = [];
+
+      const zAtXMin = m * bounds.xmin + c;
+      if (zAtXMin >= bounds.zmin && zAtXMin <= bounds.zmax) {
+        points.push([bounds.xmin, zAtXMin]);
+      }
+      const zAtXMax = m * bounds.xmax + c;
+      if (zAtXMax >= bounds.zmin && zAtXMax <= bounds.zmax) {
+        points.push([bounds.xmax, zAtXMax]);
+      }
+
+      const xAtZMin = (bounds.zmin - c) / m;
+      if (xAtZMin >= bounds.xmin && xAtZMin <= bounds.xmax) {
+        points.push([xAtZMin, bounds.zmin]);
+      }
+      const xAtZMax = (bounds.zmax - c) / m;
+      if (xAtZMax >= bounds.xmin && xAtZMax <= bounds.xmax) {
+        points.push([xAtZMax, bounds.zmax]);
+      }
+
+      const uniquePoints = points.filter(
+        ([x, z], index) =>
+          points.findIndex(([px, pz]) => Math.abs(px - x) < 0.0001 && Math.abs(pz - z) < 0.0001) === index
+      );
+
+      if (uniquePoints.length < 2) {
+        return;
+      }
+
+      const [x1, z1] = uniquePoints[0];
+      const [x2, z2] = uniquePoints[1];
+      const length = Math.hypot(x2 - x1, z2 - z1);
+      const angle = Math.atan2(z2 - z1, x2 - x1);
+      lines.push({
+        center: [(x1 + x2) / 2, 0.002, (z1 + z2) / 2],
+        length,
+        angle,
+      });
+    };
+
+    const collectLinesForSlope = (m: 1 | -1) => {
+      const cValues =
+        m === 1
+          ? [
+              bounds.zmin - bounds.xmin,
+              bounds.zmin - bounds.xmax,
+              bounds.zmax - bounds.xmin,
+              bounds.zmax - bounds.xmax,
+            ]
+          : [
+              bounds.zmin + bounds.xmin,
+              bounds.zmin + bounds.xmax,
+              bounds.zmax + bounds.xmin,
+              bounds.zmax + bounds.xmax,
+            ];
+      const minC = Math.min(...cValues);
+      const maxC = Math.max(...cValues);
+
+      for (let c = minC - deltaC; c <= maxC + deltaC; c += deltaC) {
+        collectLine(m, c);
+      }
+    };
+
+    collectLinesForSlope(1);
+    collectLinesForSlope(-1);
+
+    return lines;
+  }, [tileSize]);
 
   return (
     <group>
@@ -55,35 +135,14 @@ function TileFloor() {
       </mesh>
 
       {/* Tile grout lines - diagonal pattern */}
-      {Array.from({ length: tilesX + tilesZ }).map((_, i) => (
+      {groutLines.map((line, i) => (
         <mesh
-          key={`grout-d1-${i}`}
-          rotation={[-Math.PI / 2, Math.PI / 4, 0]}
-          position={[
-            -DIMENSIONS.width / 2 + i * tileSize * 0.707,
-            0.002,
-            -DIMENSIONS.depth / 2 + i * tileSize * 0.707
-          ]}
+          key={`grout-${i}`}
+          rotation={[-Math.PI / 2, line.angle, 0]}
+          position={line.center}
           receiveShadow
         >
-          <planeGeometry args={[DIMENSIONS.width * 2, 0.03]} />
-          <meshStandardMaterial color="#A09080" transparent opacity={0.5} />
-        </mesh>
-      ))}
-      
-      {/* Cross grout lines */}
-      {Array.from({ length: tilesX + tilesZ }).map((_, i) => (
-        <mesh
-          key={`grout-d2-${i}`}
-          rotation={[-Math.PI / 2, -Math.PI / 4, 0]}
-          position={[
-            -DIMENSIONS.width / 2 + i * tileSize * 0.707,
-            0.002,
-            DIMENSIONS.depth / 2 - i * tileSize * 0.707
-          ]}
-          receiveShadow
-        >
-          <planeGeometry args={[DIMENSIONS.width * 2, 0.03]} />
+          <planeGeometry args={[line.length, 0.03]} />
           <meshStandardMaterial color="#A09080" transparent opacity={0.5} />
         </mesh>
       ))}
@@ -487,8 +546,8 @@ function EntryDoor() {
       ))}
 
       {/* Door handle */}
-      <mesh position={[1.2, 3.5, 0.25]}>
-        <cylinderGeometry args={[0.06, 0.06, 0.15, 8]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh position={[1.2, 3.5, 0.25]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.06, 0.06, 0.15, 8]} />
         <meshStandardMaterial color={COLORS.metalRailing} metalness={0.85} roughness={0.2} />
       </mesh>
 
