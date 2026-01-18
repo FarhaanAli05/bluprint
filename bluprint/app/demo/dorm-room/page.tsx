@@ -63,6 +63,7 @@ export default function DormRoomDemoPage() {
   const [inventoryUnlocked, setInventoryUnlocked] = useState(false);
   const [autoRotate, setAutoRotate] = useState(false);
   const [chatTurn, setChatTurn] = useState(0); // Track chat turn for scripted behavior
+  const [isChatBusy, setIsChatBusy] = useState(false);
 
   const bookshelfCount = useMemo(
     () => sceneObjects.filter((obj) => obj.type === "bookshelf").length,
@@ -157,6 +158,10 @@ export default function DormRoomDemoPage() {
   };
 
   const handleSendMessage = (content: string) => {
+    if (isChatBusy) {
+      return;
+    }
+
     const userMessage: ChatMessage = {
       id: `msg-${Date.now()}`,
       role: 'user',
@@ -167,22 +172,54 @@ export default function DormRoomDemoPage() {
     // Check if bookshelf exists in scene
     const hasBookshelf = sceneObjects.some(obj => obj.type === 'bookshelf');
 
+    const delayMs = 3000 + Math.floor(Math.random() * 2001);
+    const streamInterval = 80 + Math.floor(Math.random() * 61);
+    const assistantId = `msg-${Date.now() + 1}`;
+
+    const enqueueMessage = (reply: string, onComplete?: () => void) => {
+      setIsChatBusy(true);
+      setMessages((prev) => [
+        ...prev,
+        userMessage,
+        {
+          id: assistantId,
+          role: 'assistant',
+          content: '...',
+          timestamp: Date.now() + 1,
+        },
+      ]);
+
+      setTimeout(() => {
+        const words = reply.split(/\s+/).filter(Boolean);
+        let index = 0;
+        const tick = () => {
+          index += 1;
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantId
+                ? { ...msg, content: words.slice(0, index).join(' ') }
+                : msg
+            )
+          );
+          if (index >= words.length) {
+            setIsChatBusy(false);
+            onComplete?.();
+            return;
+          }
+          const jitter = 80 + Math.floor(Math.random() * 61);
+          setTimeout(tick, jitter);
+        };
+        setTimeout(tick, streamInterval);
+      }, delayMs);
+    };
+
     // Scripted AI behavior (only if bookshelf exists)
     if (hasBookshelf) {
       const currentTurn = chatTurn + 1;
       setChatTurn(currentTurn);
 
       if (currentTurn === 1) {
-        const thinkingId = `msg-${Date.now() + 1}`;
-        const thinkingMessage: ChatMessage = {
-          id: thinkingId,
-          role: 'assistant',
-          content: 'Thinking...',
-          timestamp: Date.now() + 1,
-        };
-        setMessages((prev) => [...prev, userMessage, thinkingMessage]);
-        const delay = 1200 + Math.floor(Math.random() * 600);
-        setTimeout(() => {
+        enqueueMessage('Placing the bookshelf beside the painting.', () => {
           setSceneObjects((prev) => {
             const bookshelfIndex = prev.findIndex(obj => obj.type === 'bookshelf');
             if (bookshelfIndex === -1) return prev;
@@ -194,30 +231,12 @@ export default function DormRoomDemoPage() {
             };
             return updated;
           });
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === thinkingId
-                ? {
-                    ...msg,
-                    content: 'Placed bookshelf beside the painting.',
-                    timestamp: Date.now() + 2,
-                  }
-                : msg
-            )
-          );
-        }, delay);
+        });
         return;
-      } else if (currentTurn === 2) {
-        const thinkingId = `msg-${Date.now() + 1}`;
-        const thinkingMessage: ChatMessage = {
-          id: thinkingId,
-          role: 'assistant',
-          content: 'Thinking...',
-          timestamp: Date.now() + 1,
-        };
-        setMessages((prev) => [...prev, userMessage, thinkingMessage]);
-        const delay = 1200 + Math.floor(Math.random() * 600);
-        setTimeout(() => {
+      }
+
+      if (currentTurn === 2) {
+        enqueueMessage('Moving it to the right of the bed, between the bed and radiator.', () => {
           setSceneObjects((prev) => {
             const bookshelfIndex = prev.findIndex(obj => obj.type === 'bookshelf');
             if (bookshelfIndex === -1) return prev;
@@ -229,45 +248,21 @@ export default function DormRoomDemoPage() {
             };
             return updated;
           });
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === thinkingId
-                ? {
-                    ...msg,
-                    content: 'Moved bookshelf beside the bed between the bed and radiator.',
-                    timestamp: Date.now() + 2,
-                  }
-                : msg
-            )
-          );
-        }, delay);
-        return;
-      } else {
-        // Turn 3+: Default response
-        const assistantMessage: ChatMessage = {
-          id: `msg-${Date.now() + 1}`,
-          role: 'assistant',
-          content: 'The bookshelf is in position. You can manually adjust it by selecting and dragging.',
-          timestamp: Date.now() + 1,
-        };
-        setMessages((prev) => [...prev, userMessage, assistantMessage]);
+        });
         return;
       }
-    } else {
-      // No bookshelf - use default parser
-      const result = parseCommand(content, sceneObjects);
-      const assistantMessage: ChatMessage = {
-        id: `msg-${Date.now() + 1}`,
-        role: 'assistant',
-        content: result.message,
-        timestamp: Date.now() + 1,
-      };
-      setMessages((prev) => [...prev, userMessage, assistantMessage]);
+
+      enqueueMessage('The bookshelf is in position. You can fine-tune it if needed.');
+      return;
+    }
+
+    // No bookshelf - use default parser
+    const result = parseCommand(content, sceneObjects);
+    enqueueMessage(result.message, () => {
       if (result.success && result.updatedObjects) {
         setSceneObjects(result.updatedObjects);
       }
-      return;
-    }
+    });
   };
 
   const handleResetView = () => {
@@ -386,6 +381,7 @@ export default function DormRoomDemoPage() {
         <ChatbotPanel
           messages={messages}
           onSendMessage={handleSendMessage}
+          isBusy={isChatBusy}
         />
       </div>
     </div>

@@ -8,9 +8,10 @@ import { Send, User } from "lucide-react";
 interface ChatbotPanelProps {
   messages: ChatMessage[];
   onSendMessage: (message: string) => void;
+  isBusy?: boolean;
 }
 
-export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelProps) {
+export default function ChatbotPanel({ messages, onSendMessage, isBusy = false }: ChatbotPanelProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -28,6 +29,9 @@ export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isBusy) {
+      return;
+    }
     if (input.trim()) {
       onSendMessage(input.trim());
       setInput("");
@@ -135,11 +139,12 @@ export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelPr
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask me to arrange furniture..."
-            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-500 backdrop-blur transition-all focus:border-violet-400/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
+            disabled={isBusy}
+            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-500 backdrop-blur transition-all focus:border-violet-400/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-violet-400/20 disabled:cursor-not-allowed disabled:opacity-60"
           />
           <button
             type="submit"
-            disabled={!input.trim()}
+            disabled={!input.trim() || isBusy}
             className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 text-white shadow-lg shadow-violet-500/20 transition-all hover:scale-105 hover:shadow-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <Send className="h-5 w-5" />
