@@ -1,174 +1,303 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import SiteHeader from "@/components/SiteHeader";
-import Footer from "@/components/Footer";
-import UploadDropzone, { FileWithPreview } from "@/components/UploadDropzone";
-import FilePreviewGrid from "@/components/FilePreviewGrid";
-import Container from "@/components/Container";
-import Card from "@/components/Card";
-import Button, { buttonClasses } from "@/components/Button";
-import { projectStorage, formatBytes } from "@/lib/utils";
+import { ArrowLeft, Pencil, FileText } from "lucide-react";
+import GlassCard from "@/components/shared/GlassCard";
+import GlassButton from "@/components/shared/GlassButton";
+import DropZone from "@/components/upload/DropZone";
+import PhotoPreviewGrid from "@/components/upload/PhotoPreviewGrid";
+import LoadingScreen from "@/components/loading/LoadingScreen";
+import MouseSpotlight from "@/components/landing/MouseSpotlight";
 
-const ROOM_TYPES = [
-  { value: "bedroom", label: "Bedroom", enabled: true },
-  { value: "kitchen", label: "Kitchen", enabled: false, comingSoon: true },
-  { value: "living-room", label: "Living Room", enabled: false, comingSoon: true },
-];
+interface PhotoFile {
+  file: File;
+  preview: string;
+  id: string;
+}
+
+const MAX_PHOTOS = 5;
+const MIN_PHOTOS = 2;
+const BLUEPRINTS_STORAGE_KEY = "bluprint_projects";
+
+// Helper function to create URL-friendly slug
+function createSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .substring(0, 50);
+}
+
+interface Blueprint {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  photoCount: number;
+  createdAt: number;
+  thumbnail?: string;
+}
 
 export default function UploadPage() {
   const router = useRouter();
-  const [files, setFiles] = useState<FileWithPreview[]>([]);
-  const [roomType, setRoomType] = useState("bedroom");
-  const [error, setError] = useState<string | undefined>();
-  const [isCreating, setIsCreating] = useState(false);
+  const [photos, setPhotos] = useState<PhotoFile[]>([]);
+  const [projectName, setProjectName] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+  const [showLoading, setShowLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const handleFilesChange = useCallback((newFiles: FileWithPreview[]) => {
-    setFiles(newFiles);
-    setError(undefined);
+  useEffect(() => {
+    setMounted(true);
   }, []);
 
-  const handleError = useCallback((errorMessage: string) => {
-    setError(errorMessage);
+  // Cleanup preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
+    };
+  }, [photos]);
+
+  const handleFilesSelected = useCallback((files: File[]) => {
+    const newPhotos: PhotoFile[] = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    }));
+
+    setPhotos((prev) => {
+      const combined = [...prev, ...newPhotos];
+      if (combined.length > MAX_PHOTOS) {
+        combined.slice(MAX_PHOTOS).forEach((p) => URL.revokeObjectURL(p.preview));
+        return combined.slice(0, MAX_PHOTOS);
+      }
+      return combined;
+    });
   }, []);
 
-  const handleRemove = useCallback((index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-    setError(undefined);
+  const handleRemovePhoto = useCallback((id: string) => {
+    setPhotos((prev) => {
+      const photo = prev.find((p) => p.id === id);
+      if (photo) {
+        URL.revokeObjectURL(photo.preview);
+      }
+      return prev.filter((p) => p.id !== id);
+    });
   }, []);
 
-  const handleCreateProject = useCallback(async () => {
-    if (files.length === 0) {
-      setError("Please upload at least one file");
-      return;
-    }
-
-    setIsCreating(true);
-    setError(undefined);
-
-    try {
-      // Generate project ID
-      const projectId = `project_${Date.now()}`;
-
-      // Prepare project data
-      const project = {
-        id: projectId,
-        roomType,
-        files: files.map((item) => ({
-          name: item.file.name,
-          type: item.file.type,
-          size: item.file.size,
-          preview: item.preview,
-        })),
+  const handleCreateBluprint = useCallback(() => {
+    if (photos.length >= MIN_PHOTOS && projectName.trim()) {
+      // Save blueprint to localStorage
+      const slug = createSlug(projectName);
+      const newBlueprint: Blueprint = {
+        id: `bp-${Date.now()}`,
+        name: projectName.trim(),
+        slug: slug || "my-room",
+        description: projectDescription.trim() || undefined,
+        photoCount: photos.length,
         createdAt: Date.now(),
+        thumbnail: photos[0]?.preview, // Use first photo as thumbnail
       };
 
-      // Save to localStorage
-      projectStorage.save(project);
+      // Get existing blueprints
+      const stored = localStorage.getItem(BLUEPRINTS_STORAGE_KEY);
+      const existing: Blueprint[] = stored ? JSON.parse(stored) : [];
+      
+      // Add new blueprint at the beginning
+      const updated = [newBlueprint, ...existing];
+      localStorage.setItem(BLUEPRINTS_STORAGE_KEY, JSON.stringify(updated));
 
-      // Navigate to project page
-      router.push(`/projects/${projectId}`);
-    } catch (err) {
-      setError("Failed to create project. Please try again.");
-      setIsCreating(false);
+      setShowLoading(true);
     }
-  }, [files, roomType, router]);
+  }, [photos, projectName, projectDescription]);
 
-  const totalSize = files.reduce((sum, f) => sum + f.file.size, 0);
+  const canCreate = photos.length >= MIN_PHOTOS && projectName.trim().length > 0;
+  const projectSlug = createSlug(projectName) || "my-room";
+
+  if (showLoading) {
+    return <LoadingScreen onComplete={() => router.push(`/${projectSlug}`)} />;
+  }
 
   return (
-    <div className="flex min-h-screen flex-col text-slate-100">
-      <SiteHeader />
-      <main className="flex-1 py-12 lg:py-16">
-        <Container>
-          <div className="mb-8">
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-200">
-              Create a room
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold text-white">
-              Start a new project
+    <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-[#0A1128] via-[#1E0A28] to-[#0A1128]">
+      {/* Mouse spotlight effect */}
+      {mounted && <MouseSpotlight />}
+
+      {/* Background grid pattern */}
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
+          `,
+          backgroundSize: "50px 50px",
+        }}
+      />
+
+      {/* Content container */}
+      <div className="relative z-10 flex h-full flex-col">
+        {/* Header */}
+        <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 lg:px-12">
+          <Link href="/">
+            <GlassButton variant="icon" className="flex items-center gap-2">
+              <ArrowLeft className="h-5 w-5" />
+              <span className="hidden sm:inline">Back</span>
+            </GlassButton>
+          </Link>
+        </header>
+
+        {/* Main content - non-scrollable */}
+        <main className="flex flex-1 flex-col items-center justify-center px-6 pb-6">
+          {/* Title section */}
+          <div
+            className={`mb-6 text-center transition-all duration-700 ${
+              mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+            }`}
+          >
+            <h1 className="mb-2 text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+              Upload Your{" "}
+              <span className="bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
+                Space
+              </span>
             </h1>
-            <p className="mt-2 text-slate-300">
-              Upload photos or video clips to begin your room blueprint.
+            <p className="text-base text-white/60 lg:text-lg">
+              Name your project and upload {MIN_PHOTOS}-{MAX_PHOTOS} photos
             </p>
           </div>
 
-          <div className="space-y-8">
-            <Card className="p-6">
-              <label
-                htmlFor="room-type"
-                className="block text-sm font-semibold text-white"
-              >
-                Room type
-              </label>
-              <p className="mt-1 text-sm text-slate-300">
-                More room presets are coming soon.
-              </p>
-              <select
-                id="room-type"
-                value={roomType}
-                onChange={(e) => setRoomType(e.target.value)}
-                className="mt-4 block w-full max-w-sm rounded-2xl border border-white/15 bg-slate-950/70 px-3 py-2.5 text-sm text-white focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {ROOM_TYPES.map((type) => (
-                  <option
-                    key={type.value}
-                    value={type.value}
-                    disabled={!type.enabled}
-                  >
-                    {type.label}
-                    {type.comingSoon ? " (Coming soon)" : ""}
-                  </option>
-                ))}
-              </select>
-            </Card>
+          {/* Split container */}
+          <GlassCard
+            className={`w-full max-w-5xl transition-all duration-700 delay-100 ${
+              mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+            }`}
+          >
+            <div className="flex flex-col lg:flex-row min-h-[400px]">
+              {/* Left side - Project details */}
+              <div className="flex-1 p-6 lg:p-8 border-b lg:border-b-0 lg:border-r border-white/10">
+                <div className="h-full flex flex-col">
+                  {/* Project Name */}
+                  <div className="mb-6">
+                    <label className="flex items-center gap-2 text-sm font-medium text-white/80 mb-2">
+                      <Pencil className="w-4 h-4" />
+                      Project Name <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={projectName}
+                      onChange={(e) => setProjectName(e.target.value)}
+                      placeholder="e.g., My Bedroom, Living Room..."
+                      className="
+                        w-full px-4 py-3
+                        bg-white/5 border border-white/20
+                        rounded-xl
+                        text-white placeholder-white/40
+                        focus:outline-none focus:border-[#667eea] focus:bg-white/10
+                        transition-all duration-200
+                      "
+                      maxLength={50}
+                    />
+                    {projectName && (
+                      <p className="mt-2 text-xs text-white/40">
+                        URL: /{projectSlug}
+                      </p>
+                    )}
+                  </div>
 
-            <Card className="p-6">
-              <UploadDropzone
-                files={files}
-                onFilesChange={handleFilesChange}
-                error={error}
-                onError={handleError}
-              />
-            </Card>
-
-            {files.length > 0 && (
-              <Card className="p-6">
-                <FilePreviewGrid files={files} onRemove={handleRemove} />
-              </Card>
-            )}
-
-            <Card className="p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-sm text-slate-300">
-                  {files.length} file{files.length !== 1 ? "s" : ""} selected
-                  {files.length > 0 && (
-                    <span className="ml-2 text-slate-400">
-                      • {formatBytes(totalSize)} total
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <Link href="/" className={buttonClasses("ghost", "sm")}>
-                    Back to Home
-                  </Link>
-                  <Button
-                    type="button"
-                    onClick={handleCreateProject}
-                    disabled={isCreating || files.length === 0}
-                    size="sm"
-                  >
-                    {isCreating ? "Creating..." : "Create Project"}
-                  </Button>
+                  {/* Project Description */}
+                  <div className="flex-1 flex flex-col">
+                    <label className="flex items-center gap-2 text-sm font-medium text-white/80 mb-2">
+                      <FileText className="w-4 h-4" />
+                      Description <span className="text-white/40">(optional)</span>
+                    </label>
+                    <textarea
+                      value={projectDescription}
+                      onChange={(e) => setProjectDescription(e.target.value)}
+                      placeholder="Describe your room, style preferences, or any specific details..."
+                      className="
+                        flex-1 w-full px-4 py-3
+                        bg-white/5 border border-white/20
+                        rounded-xl
+                        text-white placeholder-white/40
+                        focus:outline-none focus:border-[#667eea] focus:bg-white/10
+                        transition-all duration-200
+                        resize-none
+                        min-h-[120px]
+                      "
+                      maxLength={500}
+                    />
+                    <p className="mt-2 text-xs text-white/40 text-right">
+                      {projectDescription.length}/500
+                    </p>
+                  </div>
                 </div>
               </div>
-            </Card>
+
+              {/* Right side - Photo upload */}
+              <div className="flex-1 p-6 lg:p-8">
+                <div className="h-full flex flex-col">
+                  <label className="flex items-center gap-2 text-sm font-medium text-white/80 mb-3">
+                    Room Photos <span className="text-red-400">*</span>
+                    <span className="text-white/40 font-normal">
+                      ({photos.length}/{MAX_PHOTOS})
+                    </span>
+                  </label>
+                  
+                  <div className="flex-1">
+                    {photos.length === 0 ? (
+                      <DropZone 
+                        onFilesSelected={handleFilesSelected} 
+                        maxFiles={MAX_PHOTOS}
+                        compact
+                      />
+                    ) : (
+                      <PhotoPreviewGrid
+                        photos={photos}
+                        onRemove={handleRemovePhoto}
+                        onAddMore={handleFilesSelected}
+                        maxPhotos={MAX_PHOTOS}
+                        compact
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+
+          {/* Action section */}
+          <div
+            className={`mt-6 flex flex-col items-center gap-3 transition-all duration-700 delay-200 ${
+              mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+            }`}
+          >
+            {/* Requirements indicator */}
+            <div className="flex items-center gap-4 text-sm">
+              <span className={`flex items-center gap-1.5 ${projectName.trim() ? "text-green-400" : "text-white/50"}`}>
+                <span className={`w-2 h-2 rounded-full ${projectName.trim() ? "bg-green-400" : "bg-white/30"}`} />
+                Name added
+              </span>
+              <span className={`flex items-center gap-1.5 ${photos.length >= MIN_PHOTOS ? "text-green-400" : "text-white/50"}`}>
+                <span className={`w-2 h-2 rounded-full ${photos.length >= MIN_PHOTOS ? "bg-green-400" : "bg-white/30"}`} />
+                {photos.length >= MIN_PHOTOS ? `${photos.length} photos` : `Need ${MIN_PHOTOS}+ photos`}
+              </span>
+            </div>
+
+            {/* Create button */}
+            <GlassButton
+              variant="primary"
+              onClick={handleCreateBluprint}
+              disabled={!canCreate}
+              className="min-w-[200px]"
+            >
+              Create Bluprint
+            </GlassButton>
           </div>
-        </Container>
-      </main>
-      <Footer />
+        </main>
+      </div>
     </div>
   );
 }

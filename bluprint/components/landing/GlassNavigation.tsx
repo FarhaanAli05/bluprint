@@ -21,19 +21,19 @@ export default function GlassNavigation() {
         {/* Glass Navigation Links */}
         <div className="hidden items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-2 py-2 backdrop-blur-xl md:flex">
           <Link
-            href="/dashboard"
+            href="/my-bluprints"
             className="rounded-xl px-4 py-2 text-sm font-medium text-white/70 transition-all hover:bg-white/10 hover:text-white"
           >
-            Dashboard
+            My Bluprints
           </Link>
           <Link
-            href="/demo/dorm-room"
+            href="/storage"
             className="rounded-xl px-4 py-2 text-sm font-medium text-white/70 transition-all hover:bg-white/10 hover:text-white"
           >
-            Demo
+            Storage
           </Link>
           <Link
-            href="#features"
+            href="/features"
             className="rounded-xl px-4 py-2 text-sm font-medium text-white/70 transition-all hover:bg-white/10 hover:text-white"
           >
             Features

@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bluprint Extension Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .demo-container {
+            position: relative;
+        }
+
+        /* Browser Window */
+        .browser-window {
+            width: 900px;
+            height: 600px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Ensure popup fits within browser window */
+        .extension-popup {
+            max-width: calc(100% - 40px);
+            max-height: calc(100% - 90px);
+        }
+
+        /* Browser Header */
+        .browser-header {
+            height: 40px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .window-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .window-dot.red { background: #ff5f57; }
+        .window-dot.yellow { background: #ffbd2e; }
+        .window-dot.green { background: #28ca42; }
+
+        .url-bar {
+            flex: 1;
+            height: 28px;
+            background: #fff;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            padding: 0 12px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            color: #333;
+        }
+
+        .url-bar::before {
+            content: "";
+        }
+
+        .extension-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .extension-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .extension-icon:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .extension-icon::after {
+            content: '';
+            position: absolute;
+            inset: -6px; /* creates Chrome-style hover radius */
+            background: rgba(60, 64, 67, 0.08); /* Chrome hover gray */
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 120ms ease-out;
+            pointer-events: none;
+        }
+
+        .extension-icon:hover::after {
+            opacity: 1;
+        }
+
+        .extension-icon:active::after {
+            background: rgba(60, 64, 67, 0.16);
+        }
+
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .menu-icon::before {
+            content: "⋮";
+        }
+
+        /* Browser Content */
+        .browser-content {
+            height: calc(100% - 40px);
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ikea-page {
+            padding: 40px;
+            height: 100%;
+        }
+
+        .ikea-logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #0058a3;
+            margin-bottom: 30px;
+        }
+        .ikea-logo-img {
+            width: 110px;        /* adjust if you want */
+            height: auto;
+            display: block;
+            margin-bottom: 30px; /* matches your previous spacing */
+        }
+
+
+        .product-placeholder {
+            display: flex;
+            gap: 40px;
+        }
+
+        .product-image-placeholder {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Subtle depth */
+        }
+
+        .product-image-placeholder::before {
+            content: '🪑';
+            opacity: 0.25;
+            filter: grayscale(0.6);
+            font-size: 120px;
+            line-height: 1;
+        }
+
+        .product-info-placeholder {
+            flex: 1;
+        }
+
+        .info-block {
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+
+        .info-block:first-child {
+            width: 60%;
+            height: 28px;
+        }
+
+        .info-block:nth-child(2) {
+            width: 40%;
+        }
+
+        .info-block:nth-child(3) {
+            width: 50%;
+        }
+
+        /* Extension Popup - Scaled down to 60% (216px × 259px from 360px × 432px) */
+        /* Fixed position: anchored to extension icon (top-right toolbar area) */
+        .extension-popup {
+            position: absolute;
+            top: 45px; /* Just below browser header (40px) + small gap */
+            right: 12px; /* Aligned with extension icon in toolbar */
+            width: 216px; /* 60% of 360px */
+            height: 259px; /* 60% of 432px */
+            background: linear-gradient(135deg, #2563eb 0%, #2563eb 100%);
+            border-radius: 4.8px; /* 60% of 8px */
+            box-shadow: 0 3.6px 10.8px rgba(0, 0, 0, 0.15); /* 60% scaling */
+            overflow: visible;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: opacity 0.25s ease-out, visibility 0.25s ease-out, transform 0.25s ease-out;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            /* Fixed position - no movement allowed */
+            will-change: opacity, visibility, transform;
+        }
+
+        .extension-popup.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Inner box (like .box) - 60% scale */
+        .popup-box {
+            background: white;
+            border-radius: 4.8px; /* 60% of 8px */
+            width: 100%;
+            height: 259px; /* 60% of 432px */
+            display: flex;
+            flex-direction: column;
+            overflow: visible;
+            position: relative;
+            box-shadow: 0 3.6px 10.8px rgba(0, 0, 0, 0.15); /* 60% of 6px 18px */
+            /* Establish stacking context */
+            isolation: isolate;
+        }
+
+        /* Blueprint background - consistent across all states (except success) */
+        .popup-box.blueprint-bg {
+            background: #F5F7FA;
+        }
+
+        .popup-box.blueprint-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('public/blueback.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(1px);
+            transform: scale(1.02);
+            z-index: 0;              /* background layer */
+            pointer-events: none;
+        }
+
+        /* Success state removes blueprint background */
+        .popup-box.no-blueprint {
+            background: white;
+        }
+
+        .popup-box.no-blueprint::before {
+            display: none;
+        }
+
+        /* Popup Pages - page-to-page navigation with transitions */
+        .popup-state {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 1; /* Always above blueprint background, even during transitions */
+        }
+
+        .popup-state.active {
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+            transform: translateX(0);
+            z-index: 1; /* Above blueprint background - consistent during transitions */
+        }
+
+
+        /* Page transition: slide in from right */
+        .popup-state.entering {
+            opacity: 0;
+            transform: translateX(20px);
+            z-index: 1; /* Maintain z-index during transitions */
+        }
+
+        .popup-state.entering.active {
+            opacity: 1;
+            transform: translateX(0);
+            z-index: 1; /* Maintain z-index during transitions */
+        }
+
+        /* Page transition: slide out to left */
+        .popup-state.exiting {
+            opacity: 0;
+            transform: translateX(-20px);
+            z-index: 1; /* Maintain z-index during transitions */
+        }
+
+        /* Initial State - 60% scale, matches extension exactly */
+        .initial-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 12px; /* 60% of 20px */
+            padding-top: 54px; /* 60% of 90px */
+            position: relative;
+        }
+
+        /* "bluprint" branding - positioned exactly as extension */
+        .initial-state h2 {
+            position: absolute;
+            top: 24px; /* 60% of 40px */
+            left: 0;
+            right: 0;
+            margin: 0;
+            color: #ffffff;
+            font-size: 19.2px; /* 60% of 32px */
+            font-weight: 700;
+            text-align: center;
+            z-index: 1;
+            letter-spacing: -0.3px; /* 60% of -0.5px */
+            line-height: 1.2;
+        }
+
+        /* Action card - 60% scale */
+        .action-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(4px);
+            border-radius: 4.8px; /* 60% of 8px */
+            padding: 9.6px 12px; /* 60% of 16px 20px */
+            box-shadow: 0 1.2px 4.8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(37, 99, 235, 0.1);
+            flex-shrink: 0;
+            max-width: 132px; /* 60% of 220px */
+            width: 100%;
+            position: relative;
+            z-index: 10; /* Well above blueprint background */
+        }
+
+        .action-description {
+            margin: 0 0 7.2px 0; /* 60% of 12px */
+            color: #666;
+            font-size: 6.6px; /* 60% of 11px */
+            font-weight: 400;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        /* Create button (Apply) - 60% scale, matches extension exactly */
+        .create-button {
+            background: #2563eb;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 9.6px; /* 60% of 10px 16px */
+            font-size: 7.2px; /* 60% of 12px */
+            font-weight: 600;
+            border-radius: 3px; /* 60% of 5px */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0.6px 1.8px rgba(37, 99, 235, 0.3); /* 60% scaling */
+            width: 100%;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle grid pattern overlay for blueprint feel */
+        .create-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 4.8px 4.8px; /* 60% of 8px */
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .create-button:hover {
+            background: #2563eb;
+            box-shadow: 0 1.2px 3.6px rgba(37, 99, 235, 0.4); /* 60% scaling */
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: none; /* No scale transform - keeps click accuracy */
+            outline: 2px solid rgba(37, 99, 235, 0.3); /* Visible hover feedback */
+            outline-offset: -2px;
+        }
+
+        .create-button:active {
+            background: #2563eb;
+            box-shadow: 0 0.6px 1.2px rgba(37, 99, 235, 0.3); /* 60% scaling */
+            transform: scale(0.95); /* Subtle press effect */
+            outline: none;
+        }
+
+        .create-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .create-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .action-card .create-button {
+            width: 100%;
+            margin: 0;
+        }
+
+        .error-message {
+            margin-top: 6.6px; /* 60% of 11px */
+            color: #d32f2f;
+            font-size: 5.4px; /* 60% of 9px */
+            text-align: center;
+            padding: 3.6px 4.8px; /* 60% of 6px 8px */
+            background: rgba(211, 47, 47, 0.1);
+            border-radius: 2.4px; /* 60% of 4px */
+            border: 1px solid rgba(211, 47, 47, 0.2);
+        }
+
+        /* Preview State - 60% scale, matches extension exactly */
+        .preview-state {
+            position: relative;
+            height: 100%;
+            overflow: visible;
+
+            display: block; /* important */
+        }
+
+        /* Preview Card - Groups model + buttons as one unit */
+        .preview-card {
+            background: rgba(248, 249, 250, 0.95);
+            backdrop-filter: blur(4px);
+            border-radius: 3.6px;
+            padding: 2px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0.6px 1.8px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+
+            width: calc(100% - 9.6px);
+            max-width: 200px;
+
+            position: absolute;
+            left: 50%;
+            top: 50%;
+
+            /* Center vertically + horizontally, then nudge UP */
+            transform: translate(-50%, -50%) translateY(-95px);
+
+            width: calc(100% - 9.6px);
+            max-width: 200px;
+            z-index: 10;
+            padding-top: 6px;
+        }
+
+        /* Model Viewer Wrapper - 60% scale, square shape */
+        .model-viewer-wrapper {
+            width: 120px; /* Square width */
+            height: 120px; /* Square height - matches width */
+            padding: 1px; /* Minimal padding */
+            padding-top: 1px;
+            padding-bottom: 1px;
+            position: relative;
+            flex-shrink: 0;
+            margin: 0 auto; /* Center the square model */
+        }
+
+        .model-viewer-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: linear-gradient(135deg, #f0f0f0 0%, #e8e8e8 100%);
+            border-radius: 7.2px; /* Rounded square */
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle depth */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .model-preview {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            position: relative;
+        }
+
+        .model-preview::before {
+            content: '🪑';
+            opacity: 0.25;
+            filter: grayscale(0.6);
+            font-size: 72px; /* Scaled proportionally to container */
+            line-height: 1;
+        }
+
+        /* Action Bar - 60% scale */
+        .preview-actions {
+            display: flex;
+            gap: 2.4px; /* Reduced gap */
+            padding: 2px 2px 4px; /* Minimal padding to save vertical space */
+            flex-shrink: 0;
+            position: relative;
+            margin-top: 0; /* Directly under model card */
+            background: transparent;
+            z-index: 10; /* Well above blueprint background (z-index: -1) */
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 3.6px 7.2px; /* Reduced vertical padding */
+            font-size: 6.6px; /* 60% of 11px */
+            font-weight: 600;
+            border-radius: 3px; /* 60% of 5px */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            min-height: 16.8px; /* Reduced height */
+            margin: 0;
+        }
+
+        .action-button.primary {
+            background: #2563eb;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0.6px 1.8px rgba(37, 99, 235, 0.3); /* 60% scaling */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-button.primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 4.8px 4.8px; /* 60% of 8px */
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .action-button.primary:hover {
+            background: #2563eb;
+            box-shadow: 0 1.2px 3.6px rgba(37, 99, 235, 0.4); /* 60% scaling */
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: none; /* No scale transform - keeps click accuracy */
+            outline: 2px solid rgba(37, 99, 235, 0.3); /* Visible hover feedback */
+            outline-offset: -2px;
+        }
+
+        .action-button.primary:active {
+            background: #2563eb;
+            box-shadow: 0 0.6px 1.2px rgba(37, 99, 235, 0.3); /* 60% scaling */
+            transform: scale(0.95); /* Subtle press effect */
+            outline: none;
+        }
+
+        .action-button.secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #e0e0e0;
+            font-size: 6px; /* 60% of 10px */
+        }
+
+        .action-button.secondary:hover {
+            background: #eeeeee;
+            color: #333;
+            transform: none; /* No scale transform - keeps click accuracy */
+            outline: 2px solid rgba(0, 0, 0, 0.1); /* Visible hover feedback */
+            outline-offset: -2px;
+        }
+
+        .action-button.secondary:active {
+            background: #e8e8e8;
+            transform: scale(0.95); /* Subtle press effect */
+            outline: none;
+        }
+
+        /* Scrollable Details Container - only this scrolls */
+        .preview-scroll-container {
+            flex: 0 1 auto; /* Don't grow to fill space - prevents pushing content down */
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+            max-height: 150px; /* Reduced to keep content compact */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.05);
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            padding: 0 4.8px 4.8px; /* Match card margins, bottom padding */
+            position: relative;
+            z-index: 10; /* Well above blueprint background (z-index: -1) */
+            margin-top: 0; /* No gap - directly below button row */
+        }
+
+        .preview-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .preview-scroll-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 3px;
+        }
+
+        .preview-scroll-container::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+            transition: background-color 0.2s ease;
+        }
+
+        .preview-scroll-container::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        /* Product Info */
+        .product-info {
+            padding: 6px 6px 7.2px; /* Reduced padding to save space */
+            padding-bottom: 7.2px;
+            text-align: left;
+            position: relative;
+            min-height: fit-content;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(3px);
+            border-radius: 3.6px; /* 60% of 6px */
+            margin: 0 0 3.6px 0; /* Reduced bottom margin */
+            box-shadow: 0 0.6px 1.2px rgba(0, 0, 0, 0.05); /* 60% scaling */
+            z-index: 10; /* Well above blueprint background (z-index: -1) */
+        }
+
+        .product-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10px;
+            right: 10px;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.08), transparent);
+        }
+
+        /* Product List - Definition list with 2-column layout */
+        .product-list {
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 85px 1fr;
+            gap: 10px 12px;
+            align-items: start;
+        }
+
+        .info-item {
+            display: contents;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: right;
+            padding-right: 8px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 11px;
+            font-weight: 400;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Success State - 60% scale, matches extension exactly */
+        .success-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 0;
+            padding: 0 12px; /* 60% of 20px */
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px); /* 60% of 10px */
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-icon {
+            margin: 4.8px 0 9.6px; /* 60% of 8px 0 16px */
+            animation: scaleIn 0.4s ease 0.1s both;
+        }
+
+        .success-icon svg {
+            width: 21.6px; /* 60% of 36px */
+            height: 21.6px; /* 60% of 36px */
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .success-title {
+            margin: 0 0 3.6px 0; /* 60% of 6px */
+            color: #333;
+            font-size: 10.8px; /* 60% of 18px */
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .success-subtext {
+            margin: 0 0 12.6px 0; /* 60% of 21px */
+            color: #666;
+            font-size: 6px; /* 60% of 10px */
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .success-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4.8px; /* 60% of 8px */
+            width: 100%;
+            max-width: 126px; /* 60% of 210px */
+        }
+
+        .success-button {
+            padding: 4.8px 9px; /* 60% of 8px 15px */
+            font-size: 6px; /* 60% of 10px */
+            font-weight: 600;
+            border-radius: 3px; /* 60% of 5px */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            width: 100%;
+            min-height: 18px; /* 60% of 30px */
+        }
+
+        .success-button.primary {
+            background: #2563eb;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0.6px 1.8px rgba(37, 99, 235, 0.3); /* 60% scaling */
+        }
+
+        .success-button.primary:hover {
+            background: #2563eb;
+            box-shadow: 0 1.2px 3.6px rgba(37, 99, 235, 0.4); /* 60% scaling */
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: none; /* No scale transform - keeps click accuracy */
+        }
+
+        .success-button.primary:active {
+            transform: scale(0.95); /* Subtle press effect */
+        }
+
+        .success-button.secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #e0e0e0;
+        }
+
+        .success-button.secondary:hover {
+            background: #eeeeee;
+            color: #333;
+            transform: none; /* No scale transform - keeps click accuracy */
+        }
+
+        .success-button.secondary:active {
+            transform: scale(0.95); /* Subtle press effect */
+        }
+
+        .success-actions .btn-secondary {
+            order: 1;
+        }
+
+        .success-actions .btn-primary {
+            order: 2;
+        }
+
+        /* Cursor */
+        .demo-cursor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            pointer-events: none;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.2s;
+            transform: translate(-2px, -2px);
+        }
+        .cursor-img {
+            width: 16px;      /* standard cursor size */
+            height: auto;
+            display: block;
+        }
+
+        .demo-cursor.visible {
+            opacity: 1;
+        }
+
+
+
+
+
+        /* Hover effects */
+        .hover-effect {
+            position: relative;
+        }
+
+
+        /* Click animation */
+        .click-animation {
+            animation: clickPress 0.2s ease-out;
+        }
+
+        @keyframes clickPress {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.92); }
+            100% { transform: scale(1); }
+        }
+
+        /* Demo label */
+        .demo-label {
+            position: absolute;
+            top: -30px;
+            left: 0;
+            color: #999;
+            font-size: 12px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-label"></div>
+        <div class="browser-window">
+            <!-- Browser Header -->
+            <div class="browser-header">
+                <div class="window-controls">
+                    <div class="window-dot red"></div>
+                    <div class="window-dot yellow"></div>
+                    <div class="window-dot green"></div>
+                </div>
+                <div class="url-bar"></div>
+                <div class="extension-icon hover-effect" id="extensionIcon">
+                    <img src="bluprint/public/bluprintlog.png" alt="Bluprint" />
+                </div>
+                <div class="menu-icon"></div>
+            </div>
+
+            <!-- Browser Content -->
+            <div class="browser-content">
+                <div class="ikea-page">
+                    <img class="ikea-logo-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWMAAACOCAMAAADTsZk7AAAAz1BMVEX72RQAWKsAWKP/3wAAVaVYeon/3QBcfYYAV6z/4AD/3AgAVKZSdY8AVa0ATrH92hAAUKgAUqcAS6oAU66PmW4AULBrhX5if4UAVqRPcpNIb5SvrFerqloATLIATqlziXvnzienp2DSwjnjyzDx1BxFcY8AQ65de5LOvkXgyDyPmHVrhIaJkn7EuUkqZaDCt08nZpWen3GnpWu3sVXhyTZCbZwKXaR4iYU7bpe8s1SeoWswaJ2FknqnpmQhYqJPdooAP7B4jXeDlG7Hu0LLulB9xJ1+AAAOt0lEQVR4nO2de0OiShjG0akJUEBTijQVkDbU9ZKaecu2037/z3QG0RKYGVAHdIvnr3M2GYafr887d7hMqrjFnboCP0Ap4/iVMo5fKeP4lTKOX2fJmOd5SSohqWvJrtb/XXcU+FfV+bAkoetOXXWczoSxQ3XNVJZrNTm3eq483t4s209Dozrqd2271Ro3m019R83muNUy7W5/VDWGT+1l4/ax8ry6UNHl8pr5+RA/MWOHLAKr8pNFvvO7bMy6pm6JEIK1IITiWgpJ7p/h1wUip5vdmVH+3ckvJhl1zRsF+Ekf8jSMed6N2VLvsVE2+g5XwUXk4OSOkQveYS5ASx93758alwPeje0TsU6Y8TpuZXnyfNs2/o4tAZFlwJXKG+EWBG7812h3nieIdfKoE2OM6DqeMOiUR6albNDGQhaPew1bscxZ+WWKPERNkHQCjJExqHJNu2u8dnUoILhJsvWjVhBqAeq2scxnawmRjpmxE7xSrzPs6o7diqeD6xWKalQfyx6+PPMO6HghxMfYiV75uWGY1jnR3ZUT04Br3b9PHe+IL6BjYbz23t7Lq4laC6d0hihC7oHMwzRuFqiZE49zsGcslWRp2u5bEMDzprsrBBpa3XZFklX2xsGWMeKr3pVtTjhPc6ALWYfA2U+PddbxzI4xX5JL07Ytnqn5RhSyaNEuV9CzsMPMiLGkypPGzEJ8Tw2JgRBnq/97wsw2GDBGDQi1Mh876e3UdJjJSYTN4Z3KpLlxLGPkEPxV1fqX8ltUKSicR7eZ413jKMYIsNSZcd8pgL1C4az0X6QjMR/BWFL5Th9+X8AboSTe7WTkI7z5UMa8Kj9WUQSfmkAiEgE3uzw8BR7EmC/VFnNL+O4RvCNFFKzXRe0wzziAMa9KDfM7Jjm6UApsNfhDgnlvxlKtZ3DgpwF2pQDuHgVzvIxRQ+LSFn5cCH8JeYbZ2bfRvA9jXi0t9R+S5shSgN5GTapYGPOq9vRTTcIrZBnD7B6UozLm1cmrmBLeSIHQmMhRKUdjjGL4VYSnfrKzEqKsRYzlSIxVfg5Twn5B+JpRGTEuqW0OnPqBzlKQa6sRWnKhjPnalZ76MEGojXFbC+2VhDFWe3ZKmCIF2L0ww6AzluSnbzGzEadEOA8ZlKMylit6asThAvodtR1HYSzJr6lNRJICDNpYEZmxumimQRxVoPlMdmUSY15e/uChn2hyFjpvGSlwWSP5BYGxpM6Ek9b//KUAq38/Gn+OkQl9kl/gGZdWetqvo0vUb//UsoU/k+rWUaG+wndIsIzVB263xaaAUPlsRdzv41zk8mF4VSgi4Nqn0G3oiWZh1YUCaN78aWzLFbk81pRxjOWOx4qVj7erEL3pHmpil37Fm+2FDN7pxV9eNt0LYPkuf7ge8L9NWL6Jrv/cMhSukBcad5X8vTD7U95CVkBHjsZYXnqtWOHqObqKA2+IKFaN+vmC4vt4kf7xnr75WYn964vDVcAHMngohDzfTlXybhlgqXHC4PZpWZsL5dpXhAlLDOQg41rbn+2EgZalKtfw1R4saFdc3Hk/DspFWunFB+4ze+t1ek3o1SQwzoY83o60rFuGmC0DMKgKwnwlcIXh1w9EaNfCGcsBxBx4u6Dfudj2/QrBA+2K3JXnYRWrQC38Yde5riPjwNwXy1gx9/ne6l1xXeU/trhmXB4A4a2zU7DQDkSyn7HcCLbZwGUY47KfcZ7K+NbzsOAqR/vwdHchvsieMVjSbo+vu6L/MRUwvXu5vf4QQccTM8K7H7KPcekSU494GYMqLY4uetyuecfAWNzDKpAKluLE8a+ZCKad4QLlLmHa8MWMSmMsLXCdu1gZK02aU2ia7hn3Y89Y7O9n8cW586ywdyU4XmH+0kW9VvXUUYELicyYl3Rc/zlOxqhCtI/WTe/QKnvGdKcKSus5pcDhrw+hZ4jg9k24LHK+dpLu3evgYVzrYluQcTIGHVqb4nrkw8KcMWo37llK/cP52sGg/vHRFEWr2vkz8lOD3RqJsYrJdzEzBq+0X2q97KfCnDE0qI0aXCnrVoRiDX5djUx7vvr1GixWaKh4xnyWsJUuPsaiSWNWvAp858wZC9O9Mp6jupP1OEWca7+Q3kzcr0PJ8ljGcp8wrRQbY8Wi5fTcNLj4ljVjZbx/gcVNlwOC8V/bwk9jiH0Zx1i6w3eDYmQMHij5RstaweqHMNYoPWlNwzAG7X3tGN1ksH1ahbyJFjxIGMY1k/j5mBgLS4oXaoUW5mdFZ6wt7sga5GpBxuJqb6tAmdgOn71QzFqQsZQnDsrHxBiMaMCuZ9jWLJVx8V6gjEoq3aD1dA8Z/8jdRJiEE/JSgLHcJU7yx8NYbBYpMRRsUkRhbFBnFoIPCDr7NY639+HCA1nsyn7G/IpcvVgYKxztZ1rs4H9VRzEOaP/GsatClPvAFe9jXGqT4z8WxuCK8ny5CuEh2DIW7wkJYbKiPq82jWAWoF3yMSZnvHgYgznFCbUJpknhUmHKmDQEq03bdA+5ptDa6ivrcdv+B6V2MTCGtGSjFcek3BCa80S8sEiUJqG03PKD3vsLTErgBLf9kA1j6YpyEXvGgpWj5bs+sTJ0xrnGqIrV/Rg71kWaf6l/ADpjTYuQ9cCl5GGsPiUax8KA8vccYdgknHE2V8CrZuB+GJCQdbUJBO90syjchy+1hE+ql/GMcg1zxjdL+gRekxgkB/alsUhEm+BXxTYIm4DSpuFLfMSZl7FMM3HWjLMrepBckNM2S8bghlCNOnIWEDJWdI11H48UU/bGMTl0YmAcpsKcBJlpHBM8VxsI4WOeuWVo1lOaPq/AToCcinG2TvrKGTIWqwSKhVcYOlme1bKhWU/Rz5rxxeCgPghROMbEOhbXjXOik2yLrIZlvQDjs/IK9AT44QqGjInLYTarP4gZcaOLh7Cs5/eKZHNehPHEa3w3hB1jOCc1jjdTFfS1ThQ/+2Tsz3lJtt20CPM7BLdgxxj0CI1jbXNjOKQPGBUpIzxuXX1tt2T7IDfz8IlKvFsw64MQG8CfDYawQTnUU6Ez9vdBku5L0/p5G12be8+D5BrVe6yMVmDFc4PUOG7BzVn3Qsjgcp00//mJzduXTnhMSIgwVaktMFViNiakaASr6I3NrQx6IF+80bOef0woUwt803EyBiCKW2AMj9XYpjgj3V+rfypsAL9Aa/AGxzYTH6OH03C38C/EYsg49JGiKPDY3lsExuiTnmtSmuGzlVovUCdGjBX9sEkmX/0mNLMIzjUlPmcaxS2KgUGBYxgrXw8Y1i6LqDqZGW7ONPm5fxDBLQJti2Pm/rnq17aNkP5FRPkWq3uEm/tPfA2L0gyPJW3lW4gTtoalQtR0Ubj+3H/UOmZJ146KpHlH/BqW5Ndi0ddsbkp+9/66Dl6LpWk7a7H2255Aq96cZE7gDrcWK/k1hdTlbhtd2zGsoxcnTKxiu+AbI8KawuTXxkbJ7tqK/X6QfbcnUFS3sXFJXBub/BpvYERwC0+lmDAmbk/QMLseQ4rEL30jrvE+wV4F8BbBLXYbSCwYE6c4tMV7I6CQMrFZj7JXIfk9N4pFW1e4efLJjluwYAxfSZNM1WDTTwhbBIBpklP33CS/dyySW9x8uQULxsQp5xxmii5soT1m6Rt979gJ9kCCSoSeSP+zeAaMySuwsN4qULclO4MqgWFT+h7I5Pfy0nfduNrZtcCAMXF7Ar5nLI5CFgG8+76Z0L28ye9JFyJMr+bePi84njFxBVYWv/CQo08/akXvNxNhT3riZyuI/Qgb5Ar/uXVicLYCJC2ryHXw/YmwRQBFz4KbSGcr4M4IKeToh28EzgjhZNoVucLuVy9ehJTuSHY3Gh51RkiusF6+rxFuVyf0i+FrPaTYncZYxDNCMGfd5C9DFDjrhn5FfndjEHh/Cyse6WF9CSxH+SyxltApoULY91QhLEoR+yH3fGt87iWLfNZN0mc2hZf+dcnxZzaRSyCuKw8r9vMcpz3ObErPHjtI+509lp6hd4D2PUMvPQtyXx1wFmQmPdN0Lx10pmkmPZs3ug4+mzeTnjEdUUecMZ1Jz0qPIhHOQ15Glp75f5yOP/M/k767gio2767IpO9gIYvVO1gcpe8Swonlu4Qy6TuxMILwnuk7sTLpu928iuPdbi7l9B2FruJ6R6FLOX3XZrzv2lxTTt8ZG/M7Y9dK330c87uP10rf4R0/4x/7Lvrn5N5F72JW5ccR90MSoAi42aV8SAgfxTjjDMrxnT4E3z2aRQC7L5mQ1xDGxXjdzJA6M+77YlZQt6v/IsmHeQQTxi5m/rZqfccUiJKcNbrNHAmYAeM1ZlWtzMfCdwpnFMBCc3in7tsUjouxI0mVJ40ZCufvkARFFMD935PDk5xPjBhn1q5RmrZtlCL+4XhWEF9olyul4x3iS+wYO5JKsnpXti3hX+SM+Aqc/fRYl0sSO8AZ1owdIc7StN234L+UB5H/QqvfrkjMDGJH7BlnnL07JbXW67yaopMIz5u04qQ3aBovC5l1/G4VC+O1UHNDlp8bhmmBM7Vox3wB17p/n6oykwYEQfExXgsFtCz1OsOuDs6JtCI6C14te/jyzCO87O3Bo5gZO+KdiK5pd43Xrg4Fh/TpUCtO7ApQt41lPltzoje+8P1UAoxdOR4tq/ygUx6ZluIEdaKsUeQiY1Asc1Z+mWYcb4jHe3FKjLErRNqx6cnz1dLojy1B2MCOhzYqd41WELjxX6PdmU5kBDdBuq4SZrwRsg/UAUeJvPfYKBt9U7dEZxstZMB7zdUBCwTR0sfd+3LjciEhtieAu9FpGH9qHdeOh0x6D53fZWP012xaItxs2oAO9PXxbCS5f4ZfF4hW0/w7Msq/O/nFhFfduD0R261OzHgrnndoI9woO9ZqxdWi8nh7s2w/DY37Ub9r22ZrPG429S81m+Nxq2Xb3f6oagyf2sub28fK84pHV7sxi4I2iXwWRWfC2CuHuIPcYe5gd+X+T71ex/yr82HpfKh6dZaMv5lSxvErZRy/UsbxK2Ucv1LG8et/WETvbGvrvAEAAAAASUVORK5CYII=" alt="IKEA logo" />
+                    <div class="product-placeholder">
+                        <div class="product-image-placeholder"></div>
+                        <div class="product-info-placeholder">
+                            <div class="info-block"></div>
+                            <div class="info-block"></div>
+                            <div class="info-block"></div>
+                            <div class="info-block"></div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Extension Popup -->
+                <div class="extension-popup" id="popup">
+                    <div class="popup-box" id="popupBox">
+                        <!-- Page 1: Apply State -->
+                    <div class="popup-state initial-state active" id="initialState">
+                            <h2>bluprint</h2>
+                            <div class="action-card">
+                                <p class="action-description">Preview this item at real scale in your room</p>
+                                <button class="create-button hover-effect" id="applyBtn">
+                                    <span id="applyBtnText">Apply</span>
+                                </button>
+                    </div>
+                    </div>
+
+                        <!-- Page 2: Preview State -->
+                    <div class="popup-state preview-state" id="previewState">
+                            <!-- Preview Card - Model + Buttons as one unit -->
+                            <div class="preview-card">
+                                <!-- 3D Model Viewer -->
+                                <div class="model-viewer-wrapper">
+                                    <div class="model-viewer-container">
+                                        <div class="model-preview"></div>
+                            </div>
+                            </div>
+
+                                <!-- Action Bar -->
+                                <div class="preview-actions">
+                                    <button class="action-button secondary hover-effect" id="cancelBtn">Cancel</button>
+                                    <button class="action-button primary hover-effect" id="addBtn">Add to storage</button>
+                            </div>
+                        </div>
+
+                        </div>
+
+                        <!-- Page 3: Success State -->
+                        <div class="popup-state success-state success-view" id="successState">
+                            <h2 class="success-title">Success!</h2>
+                            <div class="success-icon">
+                                <svg width="21.6" height="21.6" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="32" cy="32" r="32" fill="#10b981"/>
+                                    <path d="M20 32l8 8 16-16" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <p class="success-subtext">This item has been saved to your storage.</p>
+                            <div class="success-actions">
+                                <button class="success-button secondary hover-effect" id="keepShoppingBtn">Keep shopping</button>
+                                <button class="success-button primary hover-effect" id="viewStorageBtn">View storage</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animated Cursor -->
+        <div class="demo-cursor" id="cursor">
+            <img src="https://miro.medium.com/v2/0*oa0XcvM99Y5clDsj.png" class="cursor-img" alt="Cursor" />
+        </div>
+    </div>
+
+    <script>
+        // Element references
+        const cursor = document.getElementById('cursor');
+        const extensionIcon = document.getElementById('extensionIcon');
+        const popup = document.getElementById('popup');
+        const popupBox = document.getElementById('popupBox');
+        const applyBtn = document.getElementById('applyBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const addBtn = document.getElementById('addBtn');
+        const keepShoppingBtn = document.getElementById('keepShoppingBtn');
+        const viewStorageBtn = document.getElementById('viewStorageBtn');
+
+        const initialState = document.getElementById('initialState');
+        const previewState = document.getElementById('previewState');
+        const successState = document.getElementById('successState');
+        const CURSOR_HOME_X = 450;
+        const CURSOR_HOME_Y = 300;
+
+        // Animation functions
+        function animateCursor(x, y, duration = 800, callback) {
+            return new Promise((resolve) => {
+                cursor.style.transition = `left ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94), top ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+                cursor.style.left = `${x}px`;
+                cursor.style.top = `${y}px`;
+                cursor.classList.add('visible');
+
+                setTimeout(() => {
+                    if (callback) callback();
+                    resolve();
+                }, duration);
+            });
+        }
+
+        function hoverAt(element, delay = 0, hoverDuration = 500, callback) {
+            return new Promise((resolve) => {
+                setTimeout(async () => {
+                    // Get element position relative to browser window
+                    const rect = element.getBoundingClientRect();
+                    const browserRect = document.querySelector('.browser-window').getBoundingClientRect();
+                    
+                    // Calculate center of button (accounting for any transforms)
+                    const x = rect.left + rect.width / 2 - browserRect.left;
+                    const y = rect.top + rect.height / 2 - browserRect.top;
+
+                    // Slow, human-like cursor movement (800ms)
+                    await animateCursor(x, y, 800);
+                    
+                    // Brief pause after movement, then hover
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    element.classList.add('hovered');
+
+                    // Hover duration (0.5s as specified)
+                    setTimeout(() => {
+                        // Click animation - ensure cursor is still on button
+                        element.classList.add('click-animation');
+                        setTimeout(() => {
+                            element.classList.remove('click-animation');
+                            element.classList.remove('hovered');
+                            
+                            // Brief pause after click
+                            setTimeout(() => {
+                                if (callback) callback();
+                                resolve();
+                            }, 100);
+                        }, 200);
+                    }, hoverDuration);
+                }, delay);
+            });
+        }
+
+        // Page transition with slide animation
+        function showPage(pageElement, fromPage = null) {
+            // Hide all pages
+            [initialState, previewState, successState].forEach(state => {
+                state.classList.remove('active', 'entering', 'exiting');
+            });
+            
+            // Animate exit of current page
+            if (fromPage) {
+                fromPage.classList.add('exiting');
+            }
+            
+            // Animate entry of new page
+            pageElement.classList.add('entering', 'active');
+            
+            // Trigger transition
+            setTimeout(() => {
+                pageElement.classList.remove('entering');
+                if (fromPage) {
+                    fromPage.classList.remove('exiting');
+                }
+            }, 50);
+            
+            // Blueprint background: show for all states EXCEPT success
+            if (pageElement === successState) {
+                popupBox.classList.remove('blueprint-bg');
+                popupBox.classList.add('no-blueprint');
+            } else {
+                popupBox.classList.add('blueprint-bg');
+                popupBox.classList.remove('no-blueprint');
+            }
+        }
+
+
+        function setLoading(isLoading) {
+            const applyBtn = document.getElementById('applyBtn');
+            const applyBtnText = document.getElementById('applyBtnText');
+            if (isLoading) {
+                applyBtn.disabled = true;
+                applyBtnText.textContent = 'Scraping...'; // Only button text changes
+                applyBtn.style.opacity = '0.6'; // Dim the button
+            } else {
+                applyBtn.disabled = false;
+                applyBtnText.textContent = 'Apply';
+                applyBtn.style.opacity = '1';
+            }
+        }
+
+        function resetDemo() {
+            cursor.classList.remove('visible');
+            cursor.style.left = `${CURSOR_HOME_X}px`;
+            cursor.style.top = `${CURSOR_HOME_Y}px`;
+            popup.classList.remove('visible');
+            showPage(initialState);
+            setLoading(false); // Reset button
+            
+            [extensionIcon, applyBtn, addBtn, keepShoppingBtn, viewStorageBtn].forEach(el => {
+                if (el) el.classList.remove('hovered');
+            });
+        }
+
+        // Main demo orchestration - realistic timing with dwell periods
+        async function runDemo() {
+            if (!isAutomated) return; // Don't run if user has interacted
+            
+            resetDemo();
+            currentState = 'initial';
+
+            // Step 1: Click extension icon
+            // Initial pause
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (!isAutomated) return;
+
+            // Cursor moves to icon → hover (0.5s) → click
+            await hoverAt(extensionIcon, 0, 500, () => {
+                popup.classList.add('visible');
+            });
+
+            // Dwell: Pause 1s so Apply page is clearly readable
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (!isAutomated) return;
+
+            // Step 2: Click Apply button
+            // Cursor moves → hover (0.5s) → click Apply
+            await hoverAt(applyBtn, 0, 500, () => {
+                // Only button text changes to "Scraping..." (same size, same location)
+                currentState = 'loading';
+                setLoading(true);
+            });
+            
+            // Loading state (≈2 seconds) - button shows "Scraping...", rest of popup unchanged
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            if (!isAutomated) return;
+
+            // After loading completes: reset button, transition directly to Preview page
+            setLoading(false);
+            currentState = 'preview';
+            showPage(previewState, initialState);
+            
+            // Dwell: Pause 1s on Preview page so layout is clearly visible
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (!isAutomated) return;
+
+            // Step 3: Click Add to storage
+            // Cursor moves → hover (0.5s) → click Add to storage
+            await hoverAt(addBtn, 0, 500, async () => {
+                // Transition to Success page (500ms delay like extension)
+                await new Promise(resolve => setTimeout(resolve, 500));
+                if (!isAutomated) return;
+                currentState = 'success';
+                showPage(successState, previewState);
+            });
+            
+            // Dwell: Pause 1s so success state is clearly readable
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            if (!isAutomated) return;
+
+            // Step 4: Click Keep shopping
+            // Cursor moves → hover (0.5s) → click Keep shopping
+            await hoverAt(keepShoppingBtn, 0, 500, () => {
+                // Popup closes
+                popup.classList.remove('visible');
+            });
+
+            // Toast visible briefly
+            await new Promise(resolve => setTimeout(resolve, 800));
+            if (!isAutomated) return;
+            
+            // Move cursor away smoothly
+            await animateCursor(CURSOR_HOME_X, CURSOR_HOME_Y, 600);
+            cursor.classList.remove('visible');
+
+            // Brief pause before loop restarts
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        // State management (matching extension logic)
+        let currentState = 'initial'; // 'initial', 'loading', 'preview', 'success'
+        let isAutomated = true; // Track if we're in automated demo mode
+
+        // Button click handlers - match extension logic exactly
+        applyBtn.addEventListener('click', async function() {
+            if (currentState !== 'initial' || applyBtn.disabled) return;
+            
+            isAutomated = false; // Stop automated demo when user clicks
+            currentState = 'loading';
+            setLoading(true); // Button text changes to "Scraping..."
+            
+            try {
+                // Loading (2 seconds) - only button text changed, rest of popup unchanged
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Success - reset button, transition directly to Page 2 (Preview)
+                setLoading(false);
+                currentState = 'preview';
+                showPage(previewState, initialState);
+            } catch (err) {
+                // Error handling
+                setLoading(false);
+                currentState = 'initial';
+                console.error('Error:', err);
+            }
+        });
+
+        cancelBtn.addEventListener('click', function() {
+            if (currentState !== 'preview') return;
+            
+            isAutomated = false;
+            // Match extension: handleCancel - go back to Page 1
+            currentState = 'initial';
+            showPage(initialState, previewState);
+        });
+
+        addBtn.addEventListener('click', async function() {
+            if (currentState !== 'preview') return;
+            
+            isAutomated = false;
+            // Match extension: handleAddToStorage - Page 2 → Page 3
+            try {
+                // Simulate API call delay (500ms like extension)
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Success - transition to Page 3
+                currentState = 'success';
+                showPage(successState, previewState);
+            } catch (err) {
+                console.error('Storage error:', err);
+            }
+        });
+
+        keepShoppingBtn.addEventListener('click', function() {
+            if (currentState !== 'success') return;
+            
+            isAutomated = false;
+            // Match extension: handleKeepShopping - close popup
+            popup.classList.remove('visible');
+            
+            // Reset after toast
+            setTimeout(() => {
+                currentState = 'initial';
+                showState(initialState);
+                popup.classList.add('visible'); // Reopen for next interaction
+            }, 800);
+        });
+
+        viewStorageBtn.addEventListener('click', function() {
+            if (currentState !== 'success') return;
+            
+            isAutomated = false;
+            // Match extension: handleViewStorage - same as keepShopping for now
+            keepShoppingBtn.click();
+        });
+
+        // Start the automated demo loop (only runs if user hasn't interacted)
+        let demoInterval;
+        function startAutoDemo() {
+            // Clear any existing interval
+            if (demoInterval) {
+                clearInterval(demoInterval);
+            }
+            // Run demo - it will complete in ~12-14 seconds with realistic timing
+        runDemo();
+            // Schedule next run after demo completes (approximately every 15 seconds)
+            function scheduleNext() {
+                demoInterval = setTimeout(() => {
+                    if (isAutomated) {
+                        runDemo();
+                        scheduleNext();
+                    }
+                }, 15000);
+            }
+            scheduleNext();
+        }
+
+        // Initial demo start
+        startAutoDemo();
+    </script>
+</body>
+</html>
