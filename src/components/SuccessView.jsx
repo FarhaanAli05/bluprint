@@ -6,10 +6,12 @@ import React from 'react';
 export default function SuccessView({ onKeepShopping, onViewStorage }) {
   return (
     <div className="success-view">
+      <h2 className="success-title">Success!</h2>
+
       <div className="success-icon">
         <svg
-          width="64"
-          height="64"
+          width="40"
+          height="40"
           viewBox="0 0 64 64"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -24,8 +26,6 @@ export default function SuccessView({ onKeepShopping, onViewStorage }) {
           />
         </svg>
       </div>
-      
-      <h2 className="success-title">Success!</h2>
       
       <p className="success-subtext">
         This item has been saved to your storage.

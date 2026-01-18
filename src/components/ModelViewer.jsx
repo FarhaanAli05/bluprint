@@ -13,7 +13,7 @@ export default function ModelViewer({ dimensions, className, productName }) {
   const meshRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 });
-  const rotationRef = useRef({ x: 0, y: 0 });
+  const orbitRef = useRef({ theta: Math.PI / 4, phi: Math.PI / 2 });
   const zoomRef = useRef(5);
   const autoRotateRef = useRef(true);
   const idleTimerRef = useRef(null);
@@ -205,10 +205,36 @@ export default function ModelViewer({ dimensions, className, productName }) {
     );
     group.add(bottomRightWall);
     
-    // Center the model
-    group.position.y = -height/2;
+    // Center the model so rotations pivot around its middle
+    const boundingBox = new THREE.Box3().setFromObject(group);
+    const center = new THREE.Vector3();
+    boundingBox.getCenter(center);
+    group.position.sub(center);
     
     return group;
+  };
+
+  const updateCameraFromOrbit = () => {
+    const camera = cameraRef.current;
+    if (!camera) return;
+    const radius = zoomRef.current;
+    const { theta, phi } = orbitRef.current;
+    camera.position.set(
+      radius * Math.sin(phi) * Math.cos(theta),
+      radius * Math.cos(phi),
+      radius * Math.sin(phi) * Math.sin(theta)
+    );
+    camera.lookAt(0, 0, 0);
+  };
+
+  const syncOrbitToCamera = () => {
+    const camera = cameraRef.current;
+    if (!camera) return;
+    const radius = camera.position.length();
+    zoomRef.current = radius;
+    const phi = Math.acos(camera.position.y / radius);
+    const theta = Math.atan2(camera.position.z, camera.position.x);
+    orbitRef.current = { theta, phi };
   };
 
   // Initialize Three.js scene
@@ -217,7 +243,7 @@ export default function ModelViewer({ dimensions, className, productName }) {
 
     // Scene setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf8f9fa);
+    scene.background = new THREE.Color(0xf5f8fc);
     sceneRef.current = scene;
 
     // Camera setup
@@ -255,6 +281,16 @@ export default function ModelViewer({ dimensions, className, productName }) {
     directionalLight2.position.set(-5, 5, -5);
     scene.add(directionalLight2);
 
+    // Builder view grid (light gray blueprint lines)
+    const gridSize = 200;
+    const gridDivisions = 20;
+    const gridColor = 0xd4dbe3;
+    const grid = new THREE.GridHelper(gridSize, gridDivisions, gridColor, gridColor);
+    grid.material.opacity = 0.35;
+    grid.material.transparent = true;
+    grid.position.y = -12;
+    scene.add(grid);
+
     // Create model
     let model;
     if (isBillyBookcase) {
@@ -267,7 +303,7 @@ export default function ModelViewer({ dimensions, className, productName }) {
       const distance = 25; // Good viewing distance
       camera.position.set(distance * 0.7, distance * 0.4, distance * 0.8);
       camera.lookAt(0, 0, 0);
-      zoomRef.current = camera.position.length();
+      syncOrbitToCamera();
     } else {
       // Placeholder box
       const geometry = new THREE.BoxGeometry(10, 15, 8);
@@ -279,7 +315,7 @@ export default function ModelViewer({ dimensions, className, productName }) {
       // Position camera for placeholder
       camera.position.set(0, 5, 25);
       camera.lookAt(0, 0, 0);
-      zoomRef.current = camera.position.length();
+      syncOrbitToCamera();
     }
 
     // Animation loop
@@ -287,15 +323,10 @@ export default function ModelViewer({ dimensions, className, productName }) {
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
-      if (meshRef.current) {
-        if (autoRotateRef.current && !isDragging) {
-          meshRef.current.rotation.y += 0.005;
-          rotationRef.current.y = meshRef.current.rotation.y;
-        } else if (isDragging) {
-          meshRef.current.rotation.y = rotationRef.current.y;
-          meshRef.current.rotation.x = rotationRef.current.x;
-        }
+      if (autoRotateRef.current && !isDragging) {
+        orbitRef.current.theta += 0.005;
       }
+      updateCameraFromOrbit();
 
       renderer.render(scene, camera);
     };
@@ -358,7 +389,7 @@ export default function ModelViewer({ dimensions, className, productName }) {
   };
 
   const handleMouseMove = (e) => {
-    if (!isDragging || !meshRef.current) return;
+    if (!isDragging) return;
 
     const rect = containerRef.current.getBoundingClientRect();
     const currentX = e.clientX - rect.left;
@@ -367,12 +398,10 @@ export default function ModelViewer({ dimensions, className, productName }) {
     const deltaX = (currentX - lastMousePos.x) * 0.01;
     const deltaY = (currentY - lastMousePos.y) * 0.01;
 
-    rotationRef.current.y += deltaX;
-    rotationRef.current.x -= deltaY;
-    rotationRef.current.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationRef.current.x));
-    
-    meshRef.current.rotation.y = rotationRef.current.y;
-    meshRef.current.rotation.x = rotationRef.current.x;
+    orbitRef.current.theta += deltaX;
+    orbitRef.current.phi -= deltaY;
+    orbitRef.current.phi = Math.max(0.2, Math.min(Math.PI - 0.2, orbitRef.current.phi));
+    updateCameraFromOrbit();
 
     setLastMousePos({ x: currentX, y: currentY });
   };
@@ -390,15 +419,11 @@ export default function ModelViewer({ dimensions, className, productName }) {
     autoRotateRef.current = false;
     clearTimeout(idleTimerRef.current);
     
-      const delta = e.deltaY * 0.01;
-      if (cameraRef.current) {
-        const currentDistance = cameraRef.current.position.length();
-        const newDistance = Math.max(15, Math.min(50, currentDistance + delta));
-        zoomRef.current = newDistance;
-        
-        const ratio = newDistance / currentDistance;
-        cameraRef.current.position.multiplyScalar(ratio);
-      }
+    const delta = e.deltaY * 0.01;
+    const currentDistance = zoomRef.current;
+    const newDistance = Math.max(15, Math.min(50, currentDistance + delta));
+    zoomRef.current = newDistance;
+    updateCameraFromOrbit();
     
     // Resume auto-rotation after 2 seconds
     idleTimerRef.current = setTimeout(() => {
@@ -430,14 +455,10 @@ export default function ModelViewer({ dimensions, className, productName }) {
     const deltaX = (currentX - lastMousePos.x) * 0.01;
     const deltaY = (currentY - lastMousePos.y) * 0.01;
 
-    if (meshRef.current) {
-      rotationRef.current.y += deltaX;
-      rotationRef.current.x -= deltaY;
-      rotationRef.current.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationRef.current.x));
-      
-      meshRef.current.rotation.y = rotationRef.current.y;
-      meshRef.current.rotation.x = rotationRef.current.x;
-    }
+    orbitRef.current.theta += deltaX;
+    orbitRef.current.phi -= deltaY;
+    orbitRef.current.phi = Math.max(0.2, Math.min(Math.PI - 0.2, orbitRef.current.phi));
+    updateCameraFromOrbit();
 
     setLastMousePos({ x: currentX, y: currentY });
   };
@@ -462,13 +483,11 @@ export default function ModelViewer({ dimensions, className, productName }) {
       );
       
       if (lastTouchDistance > 0 && cameraRef.current) {
-        const currentDistance = cameraRef.current.position.length();
+        const currentDistance = zoomRef.current;
         const delta = (lastTouchDistance - distance) * 0.1;
         const newDistance = Math.max(15, Math.min(50, currentDistance + delta));
         zoomRef.current = newDistance;
-        
-        const ratio = newDistance / currentDistance;
-        cameraRef.current.position.multiplyScalar(ratio);
+        updateCameraFromOrbit();
       }
       lastTouchDistance = distance;
     } else {

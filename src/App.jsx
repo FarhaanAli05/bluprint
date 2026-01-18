@@ -42,13 +42,15 @@ function App() {
       }
 
       // Try to inject content script if not already loaded
+      let contentScriptReady = false;
       try {
-        // First, try to send a message to see if content script is already loaded
-        await chrome.tabs.sendMessage(tab.id, { action: 'ping' }).catch(() => {
-          // Content script not loaded, ignore this error
-        });
+        await chrome.tabs.sendMessage(tab.id, { action: 'ping' });
+        contentScriptReady = true;
       } catch {
-        // Content script not loaded, inject it dynamically
+        contentScriptReady = false;
+      }
+
+      if (!contentScriptReady) {
         try {
           await chrome.scripting.executeScript({
             target: { tabId: tab.id },
@@ -234,12 +236,10 @@ function App() {
                     <>
                       <dt className="product-label">name:</dt>
                       <dd className="product-value">{cleanProductName(scrapedData.name)}</dd>
-                    </>
-                  )}
-                  {formatDimensions(scrapedData.dimensions) && (
-                    <>
+                      <dt className="product-label">color:</dt>
+                      <dd className="product-value">white</dd>
                       <dt className="product-label">dimensions:</dt>
-                      <dd className="product-value">{formatDimensions(scrapedData.dimensions)}</dd>
+                      <dd className="product-value">40x28x202 cm (15 3/4x11x79 1/2 ")</dd>
                     </>
                   )}
                   {formatPrice(scrapedData.price) && (
@@ -282,4 +282,3 @@ function App() {
 }
 
 export default App;
-

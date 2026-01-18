@@ -1,8 +1,8 @@
 .app-container {
-  width: 270px;
-  height: 324px; /* 20% increase from 270px */
+  width: 360px;
+  height: 432px;
   padding: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #2563eb 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -15,7 +15,7 @@
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
   text-align: center;
   width: 100%;
-  height: 324px;
+  height: 432px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -25,21 +25,24 @@
 /* Blueprint background for initial state */
 .box.blueprint-bg {
   background: #F5F7FA;
-  background-image: 
-    /* Grid lines */
-    linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px),
-    /* Subtle noise texture */
-    radial-gradient(circle at 20% 50%, rgba(74, 144, 226, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(74, 144, 226, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 40% 20%, rgba(74, 144, 226, 0.02) 0%, transparent 50%);
-  background-size: 
-    12px 12px,
-    12px 12px,
-    100% 100%,
-    100% 100%,
-    100% 100%;
-  background-position: 0 0, 0 0, 0 0, 100% 100%, 50% 50%;
+}
+
+.box.blueprint-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/blueback.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(2px);
+  transform: scale(1.02);
+  z-index: 0;
+}
+
+.box.blueprint-bg > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Initial State Styles - Centered content */
@@ -60,7 +63,7 @@
   left: 0;
   right: 0;
   margin: 0;
-  color: #333;
+  color: #ffffff;
   font-size: 32px;
   font-weight: 700;
   text-align: center;
@@ -75,7 +78,7 @@
   backdrop-filter: blur(4px);
   border-radius: 8px;
   padding: 16px 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(74, 144, 226, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(37, 99, 235, 0.1);
   flex-shrink: 0;
   max-width: 220px;
   width: 100%;
@@ -108,7 +111,7 @@
 
 .create-button {
   /* Muted blueprint blue base */
-  background: #4A90E2;
+  background: #2563eb;
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 10px 16px;
@@ -117,7 +120,7 @@
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(74, 144, 226, 0.3);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
   width: 100%;
   margin: 0;
   position: relative;
@@ -141,14 +144,14 @@
 }
 
 .create-button:hover {
-  background: #5B9FE8;
-  box-shadow: 0 2px 6px rgba(74, 144, 226, 0.4);
+  background: #2563eb;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
   border-color: rgba(255, 255, 255, 0.3);
 }
 
 .create-button:active {
-  background: #3A80D2;
-  box-shadow: 0 1px 2px rgba(74, 144, 226, 0.3);
+  background: #2563eb;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.3);
 }
 
 .create-button:disabled {
@@ -193,7 +196,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
-  max-height: 110px; /* Constrained height - forces scrolling for content */
+  max-height: 80px; /* Constrained height - forces scrolling for content */
   /* Custom scrollbar styling - visible when content overflows */
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.05);
@@ -223,7 +226,7 @@
 
 /* Model Viewer Wrapper - Compact, just enough for clear interaction */
 .model-viewer-wrapper {
-  height: 160px; /* Slightly larger for breathing room */
+  height: 260px;
   padding: 4px;
   padding-bottom: 2px;
   position: relative;
@@ -344,10 +347,10 @@
 
 .action-button.primary {
   /* Muted blueprint blue - matches create-button */
-  background: #4A90E2;
+  background: #2563eb;
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 1px 3px rgba(74, 144, 226, 0.3);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -369,14 +372,14 @@
 }
 
 .action-button.primary:hover {
-  background: #5B9FE8;
-  box-shadow: 0 2px 6px rgba(74, 144, 226, 0.4);
+  background: #2563eb;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
   border-color: rgba(255, 255, 255, 0.3);
 }
 
 .action-button.primary:active {
-  background: #3A80D2;
-  box-shadow: 0 1px 2px rgba(74, 144, 226, 0.3);
+  background: #2563eb;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.3);
 }
 
 .action-button.secondary {
@@ -401,8 +404,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 255px;
-  padding: 21px 12px;
+  height: 100%;
+  min-height: 0;
+  padding: 0 20px;
   animation: fadeIn 0.3s ease;
 }
 
@@ -418,13 +422,13 @@
 }
 
 .success-icon {
-  margin-bottom: 15px;
+  margin: 8px 0 16px;
   animation: scaleIn 0.4s ease 0.1s both;
 }
 
 .success-icon svg {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
 }
 
 @keyframes scaleIn {
@@ -437,7 +441,7 @@
 }
 
 .success-title {
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   color: #333;
   font-size: 18px;
   font-weight: 700;
@@ -473,14 +477,16 @@
 }
 
 .success-button.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #2563eb;
   color: white;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
 }
 
 .success-button.primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: #2563eb;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .success-button.secondary {
