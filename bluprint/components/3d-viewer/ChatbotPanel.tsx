@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ChatMessage } from "@/lib/dormRoomState";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { Send, User } from "lucide-react";
 
 interface ChatbotPanelProps {
   messages: ChatMessage[];
@@ -45,7 +46,7 @@ export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelPr
       <div className="border-b border-white/10 bg-slate-900/50 p-3">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20">
-            <Bot className="h-4 w-4 text-blue-300" />
+            <Image src="/bluprintlog.png" alt="BluPrint" width={18} height={18} />
           </div>
           <div>
             <h3 className="text-sm font-semibold text-white">Room Assistant</h3>
@@ -59,7 +60,7 @@ export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelPr
           <div className="flex h-full flex-col items-center justify-center">
             <div className="text-center max-w-xs">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 ring-1 ring-white/10">
-                <Sparkles className="h-8 w-8 text-violet-400" />
+                <Image src="/bluprintlog.png" alt="BluPrint" width={36} height={36} />
               </div>
               <h4 className="text-sm font-semibold text-white">
                 How can I help?
@@ -96,7 +97,7 @@ export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelPr
               >
                 {msg.role === 'assistant' && (
                   <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 ring-1 ring-white/10">
-                    <Bot className="h-4 w-4 text-violet-300" />
+                    <Image src="/bluprintlog.png" alt="BluPrint" width={16} height={16} />
                   </div>
                 )}
 

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { initialSceneState, SceneObject, ChatMessage, parseCommand, ROOM } from "@/lib/dormRoomState";
 import InventoryPanel from "@/components/3d-viewer/InventoryPanel";
 import ChatbotPanel from "@/components/3d-viewer/ChatbotPanel";
@@ -117,23 +119,6 @@ export default function DormRoomDemoPage() {
     };
   }, [inventoryUnlocked]);
 
-  useEffect(() => {
-    if (!inventoryUnlocked) return;
-    if (sceneObjects.some((obj) => obj.type === "bookshelf")) return;
-
-    const newId = `bookshelf-${Date.now()}`;
-    const newObject: SceneObject = {
-      id: newId,
-      type: "bookshelf",
-      name: "BILLY Bookcase",
-      position: [0, 0, 0],
-      rotation: 0,
-    };
-
-    setSceneObjects((prev) => [...prev, newObject]);
-    setSelectedId(newId);
-  }, [inventoryUnlocked, sceneObjects]);
-
   const handleClearStorage = async () => {
     try {
       console.log('[BluPrint Web] Resetting storage via API...');
@@ -180,11 +165,7 @@ export default function DormRoomDemoPage() {
     };
 
     // Check if bookshelf exists in scene
-    const bookshelfIndex = sceneObjects.findIndex(obj => obj.type === 'bookshelf');
-    const hasBookshelf = bookshelfIndex !== -1;
-
-    let assistantMessage: ChatMessage;
-    let updatedObjects = sceneObjects;
+    const hasBookshelf = sceneObjects.some(obj => obj.type === 'bookshelf');
 
     // Scripted AI behavior (only if bookshelf exists)
     if (hasBookshelf) {
@@ -192,60 +173,101 @@ export default function DormRoomDemoPage() {
       setChatTurn(currentTurn);
 
       if (currentTurn === 1) {
-        updatedObjects = [...sceneObjects];
-        updatedObjects[bookshelfIndex] = {
-          ...updatedObjects[bookshelfIndex],
-          position: BOOKSHELF_TRANSFORMS.besidePainting.position,
-          rotation: BOOKSHELF_TRANSFORMS.besidePainting.rotation,
-        };
-
-        console.log('[Turn 1] Bookshelf placed beside painting:', BOOKSHELF_TRANSFORMS.besidePainting);
-
-        assistantMessage = {
-          id: `msg-${Date.now() + 1}`,
+        const thinkingId = `msg-${Date.now() + 1}`;
+        const thinkingMessage: ChatMessage = {
+          id: thinkingId,
           role: 'assistant',
-          content: 'Placed bookshelf beside the painting.',
+          content: 'Thinking...',
           timestamp: Date.now() + 1,
         };
+        setMessages((prev) => [...prev, userMessage, thinkingMessage]);
+        const delay = 1200 + Math.floor(Math.random() * 600);
+        setTimeout(() => {
+          setSceneObjects((prev) => {
+            const bookshelfIndex = prev.findIndex(obj => obj.type === 'bookshelf');
+            if (bookshelfIndex === -1) return prev;
+            const updated = [...prev];
+            updated[bookshelfIndex] = {
+              ...updated[bookshelfIndex],
+              position: BOOKSHELF_TRANSFORMS.besidePainting.position,
+              rotation: BOOKSHELF_TRANSFORMS.besidePainting.rotation,
+            };
+            return updated;
+          });
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === thinkingId
+                ? {
+                    ...msg,
+                    content: 'Placed bookshelf beside the painting.',
+                    timestamp: Date.now() + 2,
+                  }
+                : msg
+            )
+          );
+        }, delay);
+        return;
       } else if (currentTurn === 2) {
-        updatedObjects = [...sceneObjects];
-        updatedObjects[bookshelfIndex] = {
-          ...updatedObjects[bookshelfIndex],
-          position: BOOKSHELF_TRANSFORMS.besideBed.position,
-          rotation: BOOKSHELF_TRANSFORMS.besideBed.rotation,
-        };
-
-        assistantMessage = {
-          id: `msg-${Date.now() + 1}`,
+        const thinkingId = `msg-${Date.now() + 1}`;
+        const thinkingMessage: ChatMessage = {
+          id: thinkingId,
           role: 'assistant',
-          content: 'Moved bookshelf beside the bed between the bed and radiator.',
+          content: 'Thinking...',
           timestamp: Date.now() + 1,
         };
+        setMessages((prev) => [...prev, userMessage, thinkingMessage]);
+        const delay = 1200 + Math.floor(Math.random() * 600);
+        setTimeout(() => {
+          setSceneObjects((prev) => {
+            const bookshelfIndex = prev.findIndex(obj => obj.type === 'bookshelf');
+            if (bookshelfIndex === -1) return prev;
+            const updated = [...prev];
+            updated[bookshelfIndex] = {
+              ...updated[bookshelfIndex],
+              position: BOOKSHELF_TRANSFORMS.besideBed.position,
+              rotation: BOOKSHELF_TRANSFORMS.besideBed.rotation,
+            };
+            return updated;
+          });
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === thinkingId
+                ? {
+                    ...msg,
+                    content: 'Moved bookshelf beside the bed between the bed and radiator.',
+                    timestamp: Date.now() + 2,
+                  }
+                : msg
+            )
+          );
+        }, delay);
+        return;
       } else {
         // Turn 3+: Default response
-        assistantMessage = {
+        const assistantMessage: ChatMessage = {
           id: `msg-${Date.now() + 1}`,
           role: 'assistant',
           content: 'The bookshelf is in position. You can manually adjust it by selecting and dragging.',
           timestamp: Date.now() + 1,
         };
+        setMessages((prev) => [...prev, userMessage, assistantMessage]);
+        return;
       }
     } else {
       // No bookshelf - use default parser
       const result = parseCommand(content, sceneObjects);
-      assistantMessage = {
+      const assistantMessage: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',
         content: result.message,
         timestamp: Date.now() + 1,
       };
+      setMessages((prev) => [...prev, userMessage, assistantMessage]);
       if (result.success && result.updatedObjects) {
-        updatedObjects = result.updatedObjects;
+        setSceneObjects(result.updatedObjects);
       }
+      return;
     }
-
-    setMessages([...messages, userMessage, assistantMessage]);
-    setSceneObjects(updatedObjects);
   };
 
   const handleResetView = () => {
@@ -284,7 +306,14 @@ export default function DormRoomDemoPage() {
 
       {/* Header */}
       <header className="relative z-20 flex h-14 items-center justify-between gap-4 border-b border-white/10 bg-white/5 px-6 backdrop-blur-xl">
-        <div className="flex min-w-0 items-center">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-200 transition-colors hover:bg-white/10"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Back to home</span>
+          </Link>
           <h1 className="truncate font-semibold text-white">Interactive Dorm Room</h1>
         </div>
 
