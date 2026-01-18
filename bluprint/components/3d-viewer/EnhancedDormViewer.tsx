@@ -111,8 +111,8 @@ function Baseboards() {
 function Ceiling({ opacity = 1 }: { opacity?: number }) {
   return (
     <group>
-      {/* Main ceiling */}
-      <mesh position={[0, DIMENSIONS.height, 0]} receiveShadow>
+      {/* Main ceiling - exterior face */}
+      <mesh position={[0, DIMENSIONS.height, 0]} receiveShadow renderOrder={11}>
         <boxGeometry args={[DIMENSIONS.width, 0.15, DIMENSIONS.depth]} />
         <meshStandardMaterial
           color={CEILING_COLOR}
@@ -126,24 +126,26 @@ function Ceiling({ opacity = 1 }: { opacity?: number }) {
 
       {/* Ceiling panel lines - create drop tile effect */}
       {Array.from({ length: 7 }).map((_, i) => (
-        <mesh key={`tile-x-${i}`} position={[0, DIMENSIONS.height - 0.08, -DIMENSIONS.depth / 2 + i * 2]}>
+        <mesh key={`tile-x-${i}`} position={[0, DIMENSIONS.height - 0.08, -DIMENSIONS.depth / 2 + i * 2]} renderOrder={11}>
           <boxGeometry args={[DIMENSIONS.width, 0.015, 0.015]} />
           <meshStandardMaterial
             color="#E8E8E8"
             transparent
             opacity={opacity}
             depthWrite={opacity > 0.5}
+            side={THREE.DoubleSide}
           />
         </mesh>
       ))}
       {Array.from({ length: 6 }).map((_, i) => (
-        <mesh key={`tile-z-${i}`} position={[-DIMENSIONS.width / 2 + i * 2, DIMENSIONS.height - 0.08, 0]}>
+        <mesh key={`tile-z-${i}`} position={[-DIMENSIONS.width / 2 + i * 2, DIMENSIONS.height - 0.08, 0]} renderOrder={11}>
           <boxGeometry args={[0.015, 0.015, DIMENSIONS.depth]} />
           <meshStandardMaterial
             color="#E8E8E8"
             transparent
             opacity={opacity}
             depthWrite={opacity > 0.5}
+            side={THREE.DoubleSide}
           />
         </mesh>
       ))}
@@ -213,16 +215,28 @@ function AdaptiveWalls() {
     let targetOpacities = { front: 1, back: 1, left: 1, right: 1, ceiling: 1 };
     let fadingWall = 'none';
 
+    const CORNER_THRESHOLD = 0.65; // If secondary/primary > this, fade both walls
+
     // Check if camera is above (dominant +Y direction)
     if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > Math.abs(dz)) {
       if (dy > 0) {
         // Camera above room, fade ceiling
         targetOpacities.ceiling = 0.12;
         fadingWall = '+Y (ceiling)';
+
+        // Also check if angled: fade one wall if secondary axis is significant
+        const secondaryHorizontal = Math.max(Math.abs(dx), Math.abs(dz));
+        if (secondaryHorizontal / Math.abs(dy) > CORNER_THRESHOLD) {
+          if (Math.abs(dx) > Math.abs(dz)) {
+            targetOpacities[dx > 0 ? 'right' : 'left'] = 0.12;
+          } else {
+            targetOpacities[dz > 0 ? 'front' : 'back'] = 0.12;
+          }
+        }
       }
       // If dy < 0 (below), don't fade floor - keep all opaque
     } else if (Math.abs(dx) > Math.abs(dz)) {
-      // Camera is more to the left or right
+      // Camera is more to the left or right (primary axis is X)
       if (dx > 0) {
         // Camera on +X side, fade right wall
         targetOpacities.right = 0.12;
@@ -232,8 +246,19 @@ function AdaptiveWalls() {
         targetOpacities.left = 0.12;
         fadingWall = '-X (left)';
       }
+
+      // Check for corner: if Z component is also significant, fade that wall too
+      if (Math.abs(dz) / Math.abs(dx) > CORNER_THRESHOLD) {
+        if (dz > 0) {
+          targetOpacities.front = 0.12;
+          fadingWall += ' + front (corner)';
+        } else {
+          targetOpacities.back = 0.12;
+          fadingWall += ' + back (corner)';
+        }
+      }
     } else {
-      // Camera is more to the front or back
+      // Camera is more to the front or back (primary axis is Z)
       if (dz > 0) {
         // Camera on +Z side, fade front wall
         targetOpacities.front = 0.12;
@@ -242,6 +267,17 @@ function AdaptiveWalls() {
         // Camera on -Z side, fade back wall
         targetOpacities.back = 0.12;
         fadingWall = '-Z (back)';
+      }
+
+      // Check for corner: if X component is also significant, fade that wall too
+      if (Math.abs(dx) / Math.abs(dz) > CORNER_THRESHOLD) {
+        if (dx > 0) {
+          targetOpacities.right = 0.12;
+          fadingWall += ' + right (corner)';
+        } else {
+          targetOpacities.left = 0.12;
+          fadingWall += ' + left (corner)';
+        }
       }
     }
 
@@ -295,25 +331,25 @@ function AdaptiveWalls() {
     <>
       <group>
         {/* Back wall (-Z, with window) */}
-        <mesh ref={wallRefs.back} position={[0, DIMENSIONS.height / 2, -DIMENSIONS.depth / 2]} receiveShadow>
+        <mesh ref={wallRefs.back} position={[0, DIMENSIONS.height / 2, -DIMENSIONS.depth / 2]} receiveShadow renderOrder={10}>
           <boxGeometry args={[DIMENSIONS.width, DIMENSIONS.height, DIMENSIONS.wallThickness]} />
           {wallMaterial(opacities.back)}
         </mesh>
 
         {/* Front wall (+Z) */}
-        <mesh ref={wallRefs.front} position={[0, DIMENSIONS.height / 2, DIMENSIONS.depth / 2]} receiveShadow>
+        <mesh ref={wallRefs.front} position={[0, DIMENSIONS.height / 2, DIMENSIONS.depth / 2]} receiveShadow renderOrder={10}>
           <boxGeometry args={[DIMENSIONS.width, DIMENSIONS.height, DIMENSIONS.wallThickness]} />
           {wallMaterial(opacities.front)}
         </mesh>
 
         {/* Left wall (-X) */}
-        <mesh ref={wallRefs.left} position={[-DIMENSIONS.width / 2, DIMENSIONS.height / 2, 0]} receiveShadow>
+        <mesh ref={wallRefs.left} position={[-DIMENSIONS.width / 2, DIMENSIONS.height / 2, 0]} receiveShadow renderOrder={10}>
           <boxGeometry args={[DIMENSIONS.wallThickness, DIMENSIONS.height, DIMENSIONS.depth]} />
           {wallMaterial(opacities.left)}
         </mesh>
 
         {/* Right wall (+X, long blank wall) */}
-        <mesh ref={wallRefs.right} position={[DIMENSIONS.width / 2, DIMENSIONS.height / 2, 0]} receiveShadow>
+        <mesh ref={wallRefs.right} position={[DIMENSIONS.width / 2, DIMENSIONS.height / 2, 0]} receiveShadow renderOrder={10}>
           <boxGeometry args={[DIMENSIONS.wallThickness, DIMENSIONS.height, DIMENSIONS.depth]} />
           {wallMaterial(opacities.right)}
         </mesh>
@@ -410,24 +446,6 @@ function WallPainting() {
       <mesh position={[-0.04, 0, 0]}>
         <boxGeometry args={[0.01, 1.2, 0.9]} />
         <meshStandardMaterial color="#8B7355" roughness={0.7} />
-      </mesh>
-    </group>
-  );
-}
-
-function CorkBoard() {
-  return (
-    <group position={[3, 5, -DIMENSIONS.depth / 2 + 0.12]}>
-      {/* Frame */}
-      <mesh castShadow>
-        <boxGeometry args={[2, 1.5, 0.1]} />
-        <WoodMaterial color="#8B7355" />
-      </mesh>
-
-      {/* Cork surface */}
-      <mesh position={[0, 0, 0.06]}>
-        <boxGeometry args={[1.85, 1.35, 0.05]} />
-        <meshStandardMaterial color="#C4956A" roughness={0.98} />
       </mesh>
     </group>
   );
@@ -800,7 +818,6 @@ function Scene({ sceneObjects, onSelect }: SceneProps) {
       {/* Window and radiator */}
       <WindowUnit />
       <Radiator />
-      <CorkBoard />
       <WallPainting />
 
       {/* Furniture from state */}
