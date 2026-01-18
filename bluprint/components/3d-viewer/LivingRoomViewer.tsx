@@ -804,9 +804,9 @@ function Plate({ position }: { position: [number, number, number] }) {
 // CAT TOWER
 // ============================================================
 
-function CatTower({ position }: { position: [number, number, number] }) {
+function CatTower({ position, rotation = [0, 0, 0] }: { position: [number, number, number]; rotation?: [number, number, number] }) {
   return (
-    <group position={position}>
+    <group position={position} rotation={rotation}>
       {/* Base */}
       <mesh position={[0, 0.1, 0]} castShadow>
         <boxGeometry args={[1.5, 0.2, 1.5]} />
@@ -1217,10 +1217,12 @@ function Scene({ showGrid, showBlueprint, showShadows, autoRotate, demoStage }: 
       {demoStage >= 2 && (
         <>
           {/* Cat tower near back wall, left side */}
-          <CatTower position={[-6, 0, -5]} />
+          {/* positioned: dining-area back-left corner (near fireplace wall) */}
+          <CatTower position={[-6.5, 0, -5.0]} rotation={[0, Math.PI / 4, 0]} />
 
-          {/* Potted Monstera plant - tucked deep into corner by fireplace/TV wall */}
-          <PottedPlant position={[-DIMENSIONS.width / 2 + 1.2, 0, -DIMENSIONS.depth / 2 + 1.5]} />
+          {/* dining area: back-right corner (same room as cat tower) */}
+          {/* Clamped to dining area bounds: x < 5 to avoid staircase, z > -6 to stay off back wall */}
+          <PottedPlant position={[3.5, 0, -4.9]} />
 
           {/* Painting on back wall - centered horizontally at eye level */}
           <WallPainting position={[0, 4.5, -DIMENSIONS.depth / 2 + 0.2]} rotation={0} />
