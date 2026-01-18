@@ -35,6 +35,7 @@ export default function DormRoomDemoPage() {
   const [cameraMode, setCameraMode] = useState<'orbit' | 'topDown' | 'firstPerson'>('orbit');
   const [inventoryUnlocked, setInventoryUnlocked] = useState(false);
   const [autoRotate, setAutoRotate] = useState(false);
+  const [chatTurn, setChatTurn] = useState(0); // Track chat turn for scripted behavior
 
   // Poll API for storage status (reliable cross-tab sync via server)
   useEffect(() => {
@@ -115,20 +116,78 @@ export default function DormRoomDemoPage() {
       timestamp: Date.now(),
     };
 
-    const result = parseCommand(content, sceneObjects);
+    // Check if bookshelf exists in scene
+    const bookshelfIndex = sceneObjects.findIndex(obj => obj.type === 'bookshelf');
+    const hasBookshelf = bookshelfIndex !== -1;
 
-    const assistantMessage: ChatMessage = {
-      id: `msg-${Date.now() + 1}`,
-      role: 'assistant',
-      content: result.message,
-      timestamp: Date.now() + 1,
-    };
+    let assistantMessage: ChatMessage;
+    let updatedObjects = sceneObjects;
+
+    // Scripted AI behavior (only if bookshelf exists)
+    if (hasBookshelf) {
+      const currentTurn = chatTurn + 1;
+      setChatTurn(currentTurn);
+
+      if (currentTurn === 1) {
+        // Turn 1: Place bookshelf beside the painting (right wall, mid-room)
+        // Painting is at [ROOM.width / 2 - 0.08, 5, 2]
+        // Place bookshelf on right wall, beside painting, facing into room
+        updatedObjects = [...sceneObjects];
+        updatedObjects[bookshelfIndex] = {
+          ...updatedObjects[bookshelfIndex],
+          position: [ROOM.width / 2 - 0.8, 0, 2] as [number, number, number],
+          rotation: -Math.PI / 2, // Face inward (left)
+        };
+
+        assistantMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'Placed bookshelf beside the painting.',
+          timestamp: Date.now() + 1,
+        };
+      } else if (currentTurn === 2) {
+        // Turn 2: Move bookshelf beside bed, between bed and radiator
+        // Bed is at [-ROOM.width / 2 + 2, 0, -ROOM.depth / 2 + 3.5]
+        // Radiator is at [1.5, r.height / 2 + 0.1, -ROOM.depth / 2 + r.depth / 2 + 0.3]
+        // Place to right of bed, facing bed
+        updatedObjects = [...sceneObjects];
+        updatedObjects[bookshelfIndex] = {
+          ...updatedObjects[bookshelfIndex],
+          position: [-1, 0, -ROOM.depth / 2 + 3.5] as [number, number, number],
+          rotation: Math.PI / 2, // Face bed (left)
+        };
+
+        assistantMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'Moved bookshelf beside the bed between the bed and radiator.',
+          timestamp: Date.now() + 1,
+        };
+      } else {
+        // Turn 3+: Default response
+        assistantMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'The bookshelf is in position. You can manually adjust it by selecting and dragging.',
+          timestamp: Date.now() + 1,
+        };
+      }
+    } else {
+      // No bookshelf - use default parser
+      const result = parseCommand(content, sceneObjects);
+      assistantMessage = {
+        id: `msg-${Date.now() + 1}`,
+        role: 'assistant',
+        content: result.message,
+        timestamp: Date.now() + 1,
+      };
+      if (result.success && result.updatedObjects) {
+        updatedObjects = result.updatedObjects;
+      }
+    }
 
     setMessages([...messages, userMessage, assistantMessage]);
-
-    if (result.success && result.updatedObjects) {
-      setSceneObjects(result.updatedObjects);
-    }
+    setSceneObjects(updatedObjects);
   };
 
   const handleResetView = () => {
@@ -225,13 +284,14 @@ export default function DormRoomDemoPage() {
           )}
         </div>
 
-        {/* Right Sidebar - Chatbot */}
-        <div className="w-80 h-full flex-shrink-0 border-l border-white/10 bg-slate-900/30 flex flex-col">
-          <ChatbotPanel
-            messages={messages}
-            onSendMessage={handleSendMessage}
-          />
-        </div>
+      </div>
+
+      {/* Right Sidebar - Chatbot (Fixed Position Overlay) */}
+      <div className="fixed right-4 top-20 bottom-4 w-80 border border-white/10 rounded-lg bg-slate-900/95 backdrop-blur flex flex-col overflow-hidden shadow-2xl">
+        <ChatbotPanel
+          messages={messages}
+          onSendMessage={handleSendMessage}
+        />
       </div>
     </div>
   );
