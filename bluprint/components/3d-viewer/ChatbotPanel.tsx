@@ -11,6 +11,18 @@ interface ChatbotPanelProps {
   isBusy?: boolean;
 }
 
+export const TYPING_INDICATOR_TOKEN = "__typing__";
+
+function TypingIndicator() {
+  return (
+    <span className="typingDots">
+      <span className="dot" />
+      <span className="dot" />
+      <span className="dot" />
+    </span>
+  );
+}
+
 export default function ChatbotPanel({ messages, onSendMessage, isBusy = false }: ChatbotPanelProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -106,17 +118,21 @@ export default function ChatbotPanel({ messages, onSendMessage, isBusy = false }
                 )}
 
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
+                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm min-h-[2rem] ${
                     msg.role === 'user'
                       ? 'bg-gradient-to-br from-violet-500 to-blue-500 text-white shadow-lg shadow-violet-500/20'
                       : 'border border-white/10 bg-white/5 text-slate-200 backdrop-blur'
                   }`}
                 >
-                  {msg.content.split('\n').map((line, i) => (
-                    <p key={i} className={i > 0 ? 'mt-1' : ''}>
-                      {line}
-                    </p>
-                  ))}
+                  {msg.role === 'assistant' && msg.content === TYPING_INDICATOR_TOKEN ? (
+                    <TypingIndicator />
+                  ) : (
+                    msg.content.split('\n').map((line, i) => (
+                      <p key={i} className={i > 0 ? 'mt-1' : ''}>
+                        {line}
+                      </p>
+                    ))
+                  )}
                 </div>
 
                 {msg.role === 'user' && (

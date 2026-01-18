@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { initialSceneState, SceneObject, ChatMessage, parseCommand, ROOM } from "@/lib/dormRoomState";
 import InventoryPanel from "@/components/3d-viewer/InventoryPanel";
-import ChatbotPanel from "@/components/3d-viewer/ChatbotPanel";
+import ChatbotPanel, { TYPING_INDICATOR_TOKEN } from "@/components/3d-viewer/ChatbotPanel";
 import TopToolbar from "@/components/3d-viewer/TopToolbar";
 
 // Dynamic import to avoid SSR issues with Three.js
@@ -64,11 +64,21 @@ export default function DormRoomDemoPage() {
   const [autoRotate, setAutoRotate] = useState(false);
   const [chatTurn, setChatTurn] = useState(0); // Track chat turn for scripted behavior
   const [isChatBusy, setIsChatBusy] = useState(false);
+  const chatTimeoutsRef = useRef<number[]>([]);
 
   const bookshelfCount = useMemo(
     () => sceneObjects.filter((obj) => obj.type === "bookshelf").length,
     [sceneObjects]
   );
+
+  useEffect(() => {
+    return () => {
+      chatTimeoutsRef.current.forEach((timeoutId) => {
+        clearTimeout(timeoutId);
+      });
+      chatTimeoutsRef.current = [];
+    };
+  }, []);
 
   // Poll API for storage status (reliable cross-tab sync via server)
   useEffect(() => {
@@ -176,6 +186,12 @@ export default function DormRoomDemoPage() {
     const streamInterval = 80 + Math.floor(Math.random() * 61);
     const assistantId = `msg-${Date.now() + 1}`;
 
+    const scheduleTimeout = (callback: () => void, delay: number) => {
+      const timeoutId = window.setTimeout(callback, delay);
+      chatTimeoutsRef.current.push(timeoutId);
+      return timeoutId;
+    };
+
     const enqueueMessage = (reply: string, onComplete?: () => void) => {
       setIsChatBusy(true);
       setMessages((prev) => [
@@ -184,12 +200,12 @@ export default function DormRoomDemoPage() {
         {
           id: assistantId,
           role: 'assistant',
-          content: '...',
+          content: TYPING_INDICATOR_TOKEN,
           timestamp: Date.now() + 1,
         },
       ]);
 
-      setTimeout(() => {
+      scheduleTimeout(() => {
         const words = reply.split(/\s+/).filter(Boolean);
         let index = 0;
         const tick = () => {
@@ -207,9 +223,9 @@ export default function DormRoomDemoPage() {
             return;
           }
           const jitter = 80 + Math.floor(Math.random() * 61);
-          setTimeout(tick, jitter);
+          scheduleTimeout(tick, jitter);
         };
-        setTimeout(tick, streamInterval);
+        scheduleTimeout(tick, streamInterval);
       }, delayMs);
     };
 
