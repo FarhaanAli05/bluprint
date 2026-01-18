@@ -130,7 +130,24 @@ export default function DormRoomDemoPage() {
     };
   }, [inventoryUnlocked]);
 
+  const resetDemoState = () => {
+    chatTimeoutsRef.current.forEach((timeoutId) => {
+      clearTimeout(timeoutId);
+    });
+    chatTimeoutsRef.current = [];
+    setIsChatBusy(false);
+    setChatTurn(0);
+    setMessages([]);
+    setSelectedId(null);
+    setSceneObjects(initialSceneState);
+    setInventoryUnlocked(false);
+  };
+
   const handleClearStorage = async () => {
+    if (!window.confirm('Are you sure you want to reset the demo?')) {
+      return;
+    }
+    resetDemoState();
     try {
       console.log('[BluPrint Web] Resetting storage via API...');
       const response = await fetch('/api/storage/reset', { method: 'POST' });
@@ -138,11 +155,9 @@ export default function DormRoomDemoPage() {
 
       if (data.success) {
         console.log('[BluPrint Web] ✅ Storage reset successful');
-        setInventoryUnlocked(false);
       }
     } catch (error) {
       console.error('[BluPrint Web] ❌ Failed to reset storage:', error);
-      setInventoryUnlocked(false);
     }
   };
 
@@ -342,7 +357,7 @@ export default function DormRoomDemoPage() {
           />
           <button
             onClick={handleClearStorage}
-            className="rounded-full border border-red-400/20 bg-red-500/20 px-4 py-2 text-xs text-red-100 hover:bg-red-500/30 transition-colors"
+            className="cursor-pointer rounded-full border border-red-400/20 bg-red-500/20 px-4 py-2 text-xs text-red-100 transition-colors hover:bg-red-500/30"
           >
             Reset Demo
           </button>
