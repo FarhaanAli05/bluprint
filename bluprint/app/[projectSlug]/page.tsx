@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, use } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { initialSceneState, SceneObject, ChatMessage, parseCommand, ROOM } from "@/lib/dormRoomState";
 import InventoryPanel from "@/components/3d-viewer/InventoryPanel";
-import ChatbotPanel, { TYPING_INDICATOR_TOKEN } from "@/components/3d-viewer/ChatbotPanel";
+import ChatbotPanel from "@/components/3d-viewer/ChatbotPanel";
 import TopToolbar from "@/components/3d-viewer/TopToolbar";
 
 // Dynamic import to avoid SSR issues with Three.js
@@ -53,7 +53,22 @@ const BOOKSHELF_TRANSFORMS = {
   },
 };
 
-export default function DormRoomDemoPage() {
+// Helper function to format slug to display name
+function formatProjectName(slug: string): string {
+  return slug
+    .split("-")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+interface ProjectPageProps {
+  params: Promise<{ projectSlug: string }>;
+}
+
+export default function ProjectPage({ params }: ProjectPageProps) {
+  const { projectSlug } = use(params);
+  const projectName = formatProjectName(projectSlug);
+  
   const [sceneObjects, setSceneObjects] = useState<SceneObject[]>(initialSceneState);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -62,25 +77,9 @@ export default function DormRoomDemoPage() {
   const [showShadows, setShowShadows] = useState(true);
   const [inventoryUnlocked, setInventoryUnlocked] = useState(false);
   const [autoRotate, setAutoRotate] = useState(false);
-  const [chatTurn, setChatTurn] = useState(0); // Track chat turn for scripted behavior
-  const [isChatBusy, setIsChatBusy] = useState(false);
-  const chatTimeoutsRef = useRef<number[]>([]);
+  const [chatTurn, setChatTurn] = useState(0);
 
-  const bookshelfCount = useMemo(
-    () => sceneObjects.filter((obj) => obj.type === "bookshelf").length,
-    [sceneObjects]
-  );
-
-  useEffect(() => {
-    return () => {
-      chatTimeoutsRef.current.forEach((timeoutId) => {
-        clearTimeout(timeoutId);
-      });
-      chatTimeoutsRef.current = [];
-    };
-  }, []);
-
-  // Poll API for storage status (reliable cross-tab sync via server)
+  // Poll API for storage status
   useEffect(() => {
     const checkStorageStatus = async () => {
       if (typeof document !== "undefined" && document.visibilityState === "hidden") {
@@ -130,24 +129,7 @@ export default function DormRoomDemoPage() {
     };
   }, [inventoryUnlocked]);
 
-  const resetDemoState = () => {
-    chatTimeoutsRef.current.forEach((timeoutId) => {
-      clearTimeout(timeoutId);
-    });
-    chatTimeoutsRef.current = [];
-    setIsChatBusy(false);
-    setChatTurn(0);
-    setMessages([]);
-    setSelectedId(null);
-    setSceneObjects(initialSceneState);
-    setInventoryUnlocked(false);
-  };
-
   const handleClearStorage = async () => {
-    if (!window.confirm('Are you sure you want to reset the demo?')) {
-      return;
-    }
-    resetDemoState();
     try {
       console.log('[BluPrint Web] Resetting storage via API...');
       const response = await fetch('/api/storage/reset', { method: 'POST' });
@@ -155,9 +137,11 @@ export default function DormRoomDemoPage() {
 
       if (data.success) {
         console.log('[BluPrint Web] ✅ Storage reset successful');
+        setInventoryUnlocked(false);
       }
     } catch (error) {
       console.error('[BluPrint Web] ❌ Failed to reset storage:', error);
+      setInventoryUnlocked(false);
     }
   };
 
@@ -183,10 +167,6 @@ export default function DormRoomDemoPage() {
   };
 
   const handleSendMessage = (content: string) => {
-    if (isChatBusy) {
-      return;
-    }
-
     const userMessage: ChatMessage = {
       id: `msg-${Date.now()}`,
       role: 'user',
@@ -194,110 +174,70 @@ export default function DormRoomDemoPage() {
       timestamp: Date.now(),
     };
 
-    // Check if bookshelf exists in scene
-    const hasBookshelf = sceneObjects.some(obj => obj.type === 'bookshelf');
+    const bookshelfIndex = sceneObjects.findIndex(obj => obj.type === 'bookshelf');
+    const hasBookshelf = bookshelfIndex !== -1;
 
-    const delayMs = 3000 + Math.floor(Math.random() * 2001);
-    const streamInterval = 80 + Math.floor(Math.random() * 61);
-    const assistantId = `msg-${Date.now() + 1}`;
+    let assistantMessage: ChatMessage;
+    let updatedObjects = sceneObjects;
 
-    const scheduleTimeout = (callback: () => void, delay: number) => {
-      const timeoutId = window.setTimeout(callback, delay);
-      chatTimeoutsRef.current.push(timeoutId);
-      return timeoutId;
-    };
-
-    const enqueueMessage = (reply: string, onComplete?: () => void) => {
-      setIsChatBusy(true);
-      setMessages((prev) => [
-        ...prev,
-        userMessage,
-        {
-          id: assistantId,
-          role: 'assistant',
-          content: TYPING_INDICATOR_TOKEN,
-          timestamp: Date.now() + 1,
-        },
-      ]);
-
-      scheduleTimeout(() => {
-        const words = reply.split(/\s+/).filter(Boolean);
-        let index = 0;
-        const tick = () => {
-          index += 1;
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantId
-                ? { ...msg, content: words.slice(0, index).join(' ') }
-                : msg
-            )
-          );
-          if (index >= words.length) {
-            setIsChatBusy(false);
-            onComplete?.();
-            return;
-          }
-          const jitter = 80 + Math.floor(Math.random() * 61);
-          scheduleTimeout(tick, jitter);
-        };
-        scheduleTimeout(tick, streamInterval);
-      }, delayMs);
-    };
-
-    // Scripted AI behavior (only if bookshelf exists)
     if (hasBookshelf) {
       const currentTurn = chatTurn + 1;
       setChatTurn(currentTurn);
 
       if (currentTurn === 1) {
-        enqueueMessage('Placing the bookshelf beside the painting.', () => {
-          setSceneObjects((prev) => {
-            const bookshelfIndex = prev.findIndex(obj => obj.type === 'bookshelf');
-            if (bookshelfIndex === -1) return prev;
-            const updated = [...prev];
-            updated[bookshelfIndex] = {
-              ...updated[bookshelfIndex],
-              position: BOOKSHELF_TRANSFORMS.besidePainting.position,
-              rotation: BOOKSHELF_TRANSFORMS.besidePainting.rotation,
-            };
-            return updated;
-          });
-        });
-        return;
-      }
+        updatedObjects = [...sceneObjects];
+        updatedObjects[bookshelfIndex] = {
+          ...updatedObjects[bookshelfIndex],
+          position: BOOKSHELF_TRANSFORMS.besidePainting.position,
+          rotation: BOOKSHELF_TRANSFORMS.besidePainting.rotation,
+        };
 
-      if (currentTurn === 2) {
-        enqueueMessage('Moving it to the right of the bed, between the bed and radiator.', () => {
-          setSceneObjects((prev) => {
-            const bookshelfIndex = prev.findIndex(obj => obj.type === 'bookshelf');
-            if (bookshelfIndex === -1) return prev;
-            const updated = [...prev];
-            updated[bookshelfIndex] = {
-              ...updated[bookshelfIndex],
-              position: BOOKSHELF_TRANSFORMS.besideBed.position,
-              rotation: BOOKSHELF_TRANSFORMS.besideBed.rotation,
-            };
-            return updated;
-          });
-        });
-        return;
-      }
+        assistantMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'Placed bookshelf beside the painting.',
+          timestamp: Date.now() + 1,
+        };
+      } else if (currentTurn === 2) {
+        updatedObjects = [...sceneObjects];
+        updatedObjects[bookshelfIndex] = {
+          ...updatedObjects[bookshelfIndex],
+          position: BOOKSHELF_TRANSFORMS.besideBed.position,
+          rotation: BOOKSHELF_TRANSFORMS.besideBed.rotation,
+        };
 
-      enqueueMessage('The bookshelf is in position. You can fine-tune it if needed.');
-      return;
+        assistantMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'Moved bookshelf beside the bed between the bed and radiator.',
+          timestamp: Date.now() + 1,
+        };
+      } else {
+        assistantMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant',
+          content: 'The bookshelf is in position. You can manually adjust it by selecting and dragging.',
+          timestamp: Date.now() + 1,
+        };
+      }
+    } else {
+      const result = parseCommand(content, sceneObjects);
+      assistantMessage = {
+        id: `msg-${Date.now() + 1}`,
+        role: 'assistant',
+        content: result.message,
+        timestamp: Date.now() + 1,
+      };
+      if (result.success && result.updatedObjects) {
+        updatedObjects = result.updatedObjects;
+      }
     }
 
-    // No bookshelf - use default parser
-    const result = parseCommand(content, sceneObjects);
-    enqueueMessage(result.message, () => {
-      if (result.success && result.updatedObjects) {
-        setSceneObjects(result.updatedObjects);
-      }
-    });
+    setMessages([...messages, userMessage, assistantMessage]);
+    setSceneObjects(updatedObjects);
   };
 
   const handleResetView = () => {
-    // Dispatch custom event to reset the view
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('resetDormView'));
     }
@@ -330,20 +270,52 @@ export default function DormRoomDemoPage() {
         }}
       />
 
-      {/* Header */}
-      <header className="relative z-20 flex h-14 items-center justify-between gap-4 border-b border-white/10 bg-white/5 px-6 backdrop-blur-xl">
-        <div className="flex min-w-0 items-center gap-3">
+      {/* Glassmorphism Header */}
+      <header className="relative z-20 flex h-16 items-center justify-between border-b border-white/10 bg-white/5 px-6 backdrop-blur-xl">
+        <div className="flex items-center gap-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-200 transition-colors hover:bg-white/10"
+            className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-all hover:bg-white/10 hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to home</span>
+            <span className="hidden sm:inline">Back</span>
           </Link>
-          <h1 className="truncate font-semibold text-white">Interactive Dorm Room</h1>
+          <div className="h-5 w-px bg-white/10" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 shadow-lg shadow-violet-500/20">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                className="h-5 w-5 text-white"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h1 className="font-semibold text-white">{projectName}</h1>
+              <p className="text-xs text-slate-400">{ROOM.width} × {ROOM.depth} feet</p>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleClearStorage}
+            className="rounded-full border border-red-400/20 bg-red-500/20 px-4 py-2 text-xs text-red-100 hover:bg-red-500/30 transition-colors"
+          >
+            Reset Demo
+          </button>
+        </div>
+      </header>
+
+      <div className="sticky top-14 z-20 border-b border-white/10 bg-slate-900/70 px-4 py-2 backdrop-blur">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between">
           <TopToolbar
             showGrid={showGrid}
             showBlueprint={showBlueprint}
@@ -355,24 +327,19 @@ export default function DormRoomDemoPage() {
             onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
             onResetView={handleResetView}
           />
-          <button
-            onClick={handleClearStorage}
-            className="cursor-pointer rounded-full border border-red-400/20 bg-red-500/20 px-4 py-2 text-xs text-red-100 transition-colors hover:bg-red-500/30"
-          >
-            Reset Demo
-          </button>
+          <div className="text-[11px] uppercase tracking-wide text-slate-400">View Controls</div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar - Inventory (hidden until unlocked) */}
+        {/* Left Sidebar - Inventory */}
         {inventoryUnlocked && (
           <div className="w-72 flex-shrink-0 border-r border-white/10 bg-slate-900/30">
             <div className="border-b border-white/10 bg-slate-900/50 px-4 py-3">
               <h2 className="text-sm font-semibold text-white">Inventory</h2>
               <p className="mt-0.5 text-xs text-slate-400">
-                {bookshelfCount} {bookshelfCount === 1 ? 'item' : 'items'} in room
+                {sceneObjects.filter(obj => obj.type === 'bookshelf').length} {sceneObjects.filter(obj => obj.type === 'bookshelf').length === 1 ? 'item' : 'items'} in room
               </p>
             </div>
             <InventoryPanel onAddItem={handleAddItem} showBookshelf={inventoryUnlocked} />
@@ -404,15 +371,13 @@ export default function DormRoomDemoPage() {
             </div>
           )}
         </div>
-
       </div>
 
-      {/* Right Sidebar - Chatbot (Fixed Position Overlay) */}
+      {/* Right Sidebar - Chatbot */}
       <div className="fixed left-2 right-2 top-20 bottom-4 rounded-lg border border-white/10 bg-slate-900/95 backdrop-blur flex flex-col overflow-hidden shadow-2xl sm:left-auto sm:right-4 sm:w-80">
         <ChatbotPanel
           messages={messages}
           onSendMessage={handleSendMessage}
-          isBusy={isChatBusy}
         />
       </div>
     </div>

@@ -6,8 +6,8 @@ import dynamic from "next/dynamic";
 import GlassNavigation from "./GlassNavigation";
 import MouseSpotlight from "./MouseSpotlight";
 
-// Dynamically import 3D visualizer to avoid SSR issues
-const Room3DVisualizer = dynamic(() => import("./Room3DVisualizer"), {
+// Dynamically import Extension Demo to avoid SSR issues
+const ExtensionDemo = dynamic(() => import("./ExtensionDemo"), {
   ssr: false,
   loading: () => (
     <div className="flex h-full w-full items-center justify-center">
@@ -79,7 +79,7 @@ export default function LandingHero() {
             >
               {/* Primary CTA */}
               <Link
-                href="/demo/dorm-room"
+                href="/upload"
                 className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 px-8 py-4 text-base font-semibold text-white shadow-2xl shadow-violet-500/30 transition-all hover:scale-105 hover:shadow-violet-500/40"
               >
                 <span className="relative z-10">Start Designing</span>
@@ -101,7 +101,7 @@ export default function LandingHero() {
 
               {/* Secondary CTA */}
               <Link
-                href="/dashboard"
+                href="/demo-room"
                 className="group inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/10"
               >
                 <svg
@@ -129,45 +129,15 @@ export default function LandingHero() {
 
           </div>
 
-          {/* Right side - 3D Visualizer */}
+          {/* Right side - Extension Demo */}
           <div
-            className={`relative h-[400px] w-full flex-1 lg:h-[600px] transition-all delay-200 duration-1000 ${
+            className={`relative h-[400px] w-full flex-1 lg:h-[500px] transition-all delay-200 duration-1000 ${
               mounted ? "scale-100 opacity-100" : "scale-95 opacity-0"
             }`}
           >
-            {/* Glass container for 3D */}
-            <div className="absolute inset-0 overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm">
-              <Room3DVisualizer />
-            </div>
-
-            {/* Floating glass card */}
-            <div className="absolute -left-4 bottom-8 z-20 rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl lg:-left-8">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-400 to-emerald-500">
-                  <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-white">AI Analysis Complete</p>
-                  <p className="text-xs text-white/50">Room scanned in 2.3s</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Another floating card */}
-            <div className="absolute -right-2 top-8 z-20 rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl lg:-right-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-400 to-purple-500">
-                  <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-white">3 Photos Uploaded</p>
-                  <p className="text-xs text-white/50">Ready for preview</p>
-                </div>
-              </div>
+            {/* Glass container for Demo */}
+            <div className="absolute inset-0 overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm p-4">
+              <ExtensionDemo />
             </div>
           </div>
         </div>

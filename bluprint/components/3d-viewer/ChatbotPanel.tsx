@@ -2,14 +2,28 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ChatMessage } from "@/lib/dormRoomState";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { Send, User } from "lucide-react";
 
 interface ChatbotPanelProps {
   messages: ChatMessage[];
   onSendMessage: (message: string) => void;
+  isBusy?: boolean;
 }
 
-export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelProps) {
+export const TYPING_INDICATOR_TOKEN = "__typing__";
+
+function TypingIndicator() {
+  return (
+    <span className="typingDots">
+      <span className="dot" />
+      <span className="dot" />
+      <span className="dot" />
+    </span>
+  );
+}
+
+export default function ChatbotPanel({ messages, onSendMessage, isBusy = false }: ChatbotPanelProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -27,6 +41,9 @@ export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isBusy) {
+      return;
+    }
     if (input.trim()) {
       onSendMessage(input.trim());
       setInput("");
@@ -45,7 +62,7 @@ export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelPr
       <div className="border-b border-white/10 bg-slate-900/50 p-3">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20">
-            <Bot className="h-4 w-4 text-blue-300" />
+            <Image src="/bluprintlog.png" alt="BluPrint" width={18} height={18} />
           </div>
           <div>
             <h3 className="text-sm font-semibold text-white">Room Assistant</h3>
@@ -59,7 +76,7 @@ export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelPr
           <div className="flex h-full flex-col items-center justify-center">
             <div className="text-center max-w-xs">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 ring-1 ring-white/10">
-                <Sparkles className="h-8 w-8 text-violet-400" />
+                <Image src="/bluprintlog.png" alt="BluPrint" width={36} height={36} />
               </div>
               <h4 className="text-sm font-semibold text-white">
                 How can I help?
@@ -96,22 +113,26 @@ export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelPr
               >
                 {msg.role === 'assistant' && (
                   <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 ring-1 ring-white/10">
-                    <Bot className="h-4 w-4 text-violet-300" />
+                    <Image src="/bluprintlog.png" alt="BluPrint" width={16} height={16} />
                   </div>
                 )}
 
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
+                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm min-h-[2rem] ${
                     msg.role === 'user'
                       ? 'bg-gradient-to-br from-violet-500 to-blue-500 text-white shadow-lg shadow-violet-500/20'
                       : 'border border-white/10 bg-white/5 text-slate-200 backdrop-blur'
                   }`}
                 >
-                  {msg.content.split('\n').map((line, i) => (
-                    <p key={i} className={i > 0 ? 'mt-1' : ''}>
-                      {line}
-                    </p>
-                  ))}
+                  {msg.role === 'assistant' && msg.content === TYPING_INDICATOR_TOKEN ? (
+                    <TypingIndicator />
+                  ) : (
+                    msg.content.split('\n').map((line, i) => (
+                      <p key={i} className={i > 0 ? 'mt-1' : ''}>
+                        {line}
+                      </p>
+                    ))
+                  )}
                 </div>
 
                 {msg.role === 'user' && (
@@ -134,11 +155,12 @@ export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelPr
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask me to arrange furniture..."
-            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-500 backdrop-blur transition-all focus:border-violet-400/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-violet-400/20"
+            disabled={isBusy}
+            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-500 backdrop-blur transition-all focus:border-violet-400/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-violet-400/20 disabled:cursor-not-allowed disabled:opacity-60"
           />
           <button
             type="submit"
-            disabled={!input.trim()}
+            disabled={!input.trim() || isBusy}
             className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 text-white shadow-lg shadow-violet-500/20 transition-all hover:scale-105 hover:shadow-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <Send className="h-5 w-5" />
