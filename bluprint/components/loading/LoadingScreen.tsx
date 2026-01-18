@@ -151,17 +151,9 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
               src="/bluprintlog.png"
               alt="BluPrint Logo"
               fill
-              className="object-contain"
-              onError={(e) => {
-                // Fallback to text if image doesn't load
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
+              className="object-contain drop-shadow-2xl"
+              priority
             />
-            {/* Fallback logo */}
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#667eea] to-[#764ba2] rounded-2xl text-white text-3xl font-bold">
-              B
-            </div>
           </div>
         </div>
 

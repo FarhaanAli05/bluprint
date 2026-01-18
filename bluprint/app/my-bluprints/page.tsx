@@ -17,14 +17,32 @@ interface Blueprint {
   photoCount: number;
   createdAt: number;
   thumbnail?: string;
+  isDemo?: boolean;
 }
 
 // Storage key for blueprints
 const BLUEPRINTS_STORAGE_KEY = "bluprint_projects";
 
+// Pre-populated demo projects
+const DEMO_PROJECTS: Blueprint[] = [
+  {
+    id: "demo-living-room",
+    name: "Living Room",
+    slug: "demo/living-room",
+    description: "Beautiful stone fireplace with gray accent wall, decorative wrought iron staircase, and natural lighting.",
+    photoCount: 5,
+    createdAt: Date.now() - 86400000 * 3, // 3 days ago
+    thumbnail: "/living-room-thumb.jpg",
+    isDemo: true,
+  },
+];
+
 export default function MyBluprintsPage() {
-  const [blueprints, setBlueprints] = useState<Blueprint[]>([]);
+  const [userBlueprints, setUserBlueprints] = useState<Blueprint[]>([]);
   const [mounted, setMounted] = useState(false);
+
+  // Combine demo projects with user projects
+  const blueprints = [...DEMO_PROJECTS, ...userBlueprints];
 
   useEffect(() => {
     setMounted(true);
@@ -32,7 +50,7 @@ export default function MyBluprintsPage() {
     const stored = localStorage.getItem(BLUEPRINTS_STORAGE_KEY);
     if (stored) {
       try {
-        setBlueprints(JSON.parse(stored));
+        setUserBlueprints(JSON.parse(stored));
       } catch (e) {
         console.error("Failed to parse blueprints:", e);
       }
@@ -40,8 +58,11 @@ export default function MyBluprintsPage() {
   }, []);
 
   const handleDelete = (id: string) => {
-    const updated = blueprints.filter((b) => b.id !== id);
-    setBlueprints(updated);
+    // Don't delete demo projects
+    if (DEMO_PROJECTS.some(p => p.id === id)) return;
+    
+    const updated = userBlueprints.filter((b) => b.id !== id);
+    setUserBlueprints(updated);
     localStorage.setItem(BLUEPRINTS_STORAGE_KEY, JSON.stringify(updated));
   };
 
@@ -141,7 +162,15 @@ export default function MyBluprintsPage() {
                 >
                   {/* Thumbnail */}
                   <div className="relative h-40 bg-gradient-to-br from-[#667eea]/20 to-[#764ba2]/20">
-                    {blueprint.thumbnail ? (
+                    {blueprint.isDemo ? (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-amber-500/20 to-orange-600/20">
+                        <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-500/30 to-orange-500/30 flex items-center justify-center">
+                          <svg className="w-8 h-8 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                          </svg>
+                        </div>
+                      </div>
+                    ) : blueprint.thumbnail ? (
                       <Image
                         src={blueprint.thumbnail}
                         alt={blueprint.name}
@@ -157,6 +186,13 @@ export default function MyBluprintsPage() {
                     )}
                     {/* Overlay gradient */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    
+                    {/* Demo badge */}
+                    {blueprint.isDemo && (
+                      <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-amber-500/90 text-white text-xs font-semibold">
+                        Demo
+                      </div>
+                    )}
                   </div>
 
                   {/* Content */}
@@ -188,12 +224,14 @@ export default function MyBluprintsPage() {
                           Open
                         </GlassButton>
                       </Link>
-                      <button
-                        onClick={() => handleDelete(blueprint.id)}
-                        className="p-2.5 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {!blueprint.isDemo && (
+                        <button
+                          onClick={() => handleDelete(blueprint.id)}
+                          className="p-2.5 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </GlassCard>
