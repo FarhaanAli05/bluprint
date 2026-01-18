@@ -12,9 +12,13 @@ interface ChatbotPanelProps {
 export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelProps) {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Scroll only the messages container, not the whole page
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
@@ -38,8 +42,19 @@ export default function ChatbotPanel({ messages, onSendMessage }: ChatbotPanelPr
 
   return (
     <div className="flex h-full flex-col">
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="border-b border-white/10 bg-slate-900/50 p-3">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/20">
+            <Bot className="h-4 w-4 text-blue-300" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-white">Room Assistant</h3>
+            <p className="text-xs text-slate-400">Ask me to arrange furniture</p>
+          </div>
+        </div>
+      </div>
+
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center">
             <div className="text-center max-w-xs">

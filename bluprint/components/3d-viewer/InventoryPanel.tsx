@@ -1,13 +1,16 @@
 "use client";
 
-import { furnitureInventory, FurnitureItem, SceneObject } from "@/lib/dormRoomState";
+import { furnitureInventory, bookshelfItem, FurnitureItem, SceneObject } from "@/lib/dormRoomState";
 import { Plus } from "lucide-react";
+import Image from "next/image";
 
 interface InventoryPanelProps {
   onAddItem: (type: SceneObject['type']) => void;
+  showBookshelf?: boolean;
 }
 
-export default function InventoryPanel({ onAddItem }: InventoryPanelProps) {
+export default function InventoryPanel({ onAddItem, showBookshelf = false }: InventoryPanelProps) {
+  const inventory = showBookshelf ? [...furnitureInventory, bookshelfItem] : furnitureInventory;
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-4">
@@ -17,16 +20,28 @@ export default function InventoryPanel({ onAddItem }: InventoryPanelProps) {
         </p>
 
         <div className="space-y-3">
-          {furnitureInventory.map((item) => (
+          {inventory.map((item) => (
             <button
               key={item.id}
               onClick={() => onAddItem(item.type)}
               className="w-full group relative overflow-hidden rounded-lg border border-white/10 bg-slate-900/50 p-3 text-left transition-all hover:border-blue-500/50 hover:bg-slate-800/70"
             >
               <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-blue-500/20 text-blue-300">
-                  <Plus className="h-5 w-5" />
-                </div>
+                {/* Show Billy image thumbnail for bookshelf, Plus icon for others */}
+                {item.type === 'bookshelf' ? (
+                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
+                    <Image
+                      src="/billy-bookcase.png"
+                      alt="BILLY Bookcase"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-blue-500/20 text-blue-300">
+                    <Plus className="h-5 w-5" />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-white text-sm">{item.name}</p>
                   <p className="text-xs text-slate-400 mt-0.5">{item.dimensions}</p>
