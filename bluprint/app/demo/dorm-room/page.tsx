@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
-import { ArrowLeft, MessageCircle, X } from "lucide-react";
 import { initialSceneState, SceneObject, ChatMessage, parseCommand, ROOM } from "@/lib/dormRoomState";
 import InventoryPanel from "@/components/3d-viewer/InventoryPanel";
 import ChatbotPanel from "@/components/3d-viewer/ChatbotPanel";
@@ -64,6 +62,11 @@ export default function DormRoomDemoPage() {
   const [autoRotate, setAutoRotate] = useState(false);
   const [chatTurn, setChatTurn] = useState(0); // Track chat turn for scripted behavior
 
+  const bookshelfCount = useMemo(
+    () => sceneObjects.filter((obj) => obj.type === "bookshelf").length,
+    [sceneObjects]
+  );
+
   // Poll API for storage status (reliable cross-tab sync via server)
   useEffect(() => {
     const checkStorageStatus = async () => {
@@ -113,6 +116,23 @@ export default function DormRoomDemoPage() {
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [inventoryUnlocked]);
+
+  useEffect(() => {
+    if (!inventoryUnlocked) return;
+    if (sceneObjects.some((obj) => obj.type === "bookshelf")) return;
+
+    const newId = `bookshelf-${Date.now()}`;
+    const newObject: SceneObject = {
+      id: newId,
+      type: "bookshelf",
+      name: "BILLY Bookcase",
+      position: [0, 0, 0],
+      rotation: 0,
+    };
+
+    setSceneObjects((prev) => [...prev, newObject]);
+    setSelectedId(newId);
+  }, [inventoryUnlocked, sceneObjects]);
 
   const handleClearStorage = async () => {
     try {
@@ -262,52 +282,13 @@ export default function DormRoomDemoPage() {
         }}
       />
 
-      {/* Glassmorphism Header */}
-      <header className="relative z-20 flex h-16 items-center justify-between border-b border-white/10 bg-white/5 px-6 backdrop-blur-xl">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/"
-            className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-slate-400 transition-all hover:bg-white/10 hover:text-white"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back</span>
-          </Link>
-          <div className="h-5 w-px bg-white/10" />
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 shadow-lg shadow-violet-500/20">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="h-5 w-5 text-white"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6z"
-                />
-              </svg>
-            </div>
-            <div>
-              <h1 className="font-semibold text-white">Interactive Dorm Room</h1>
-              <p className="text-xs text-slate-400">{ROOM.width} × {ROOM.depth} feet</p>
-            </div>
-          </div>
+      {/* Header */}
+      <header className="relative z-20 flex h-14 items-center justify-between gap-4 border-b border-white/10 bg-white/5 px-6 backdrop-blur-xl">
+        <div className="flex min-w-0 items-center">
+          <h1 className="truncate font-semibold text-white">Interactive Dorm Room</h1>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleClearStorage}
-            className="rounded-full border border-red-400/20 bg-red-500/20 px-4 py-2 text-xs text-red-100 hover:bg-red-500/30 transition-colors"
-          >
-            Reset Demo
-          </button>
-        </div>
-      </header>
-
-      <div className="sticky top-14 z-20 border-b border-white/10 bg-slate-900/70 px-4 py-2 backdrop-blur">
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between">
+        <div className="flex items-center gap-3">
           <TopToolbar
             showGrid={showGrid}
             showBlueprint={showBlueprint}
@@ -319,9 +300,14 @@ export default function DormRoomDemoPage() {
             onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
             onResetView={handleResetView}
           />
-          <div className="text-[11px] uppercase tracking-wide text-slate-400">View Controls</div>
+          <button
+            onClick={handleClearStorage}
+            className="rounded-full border border-red-400/20 bg-red-500/20 px-4 py-2 text-xs text-red-100 hover:bg-red-500/30 transition-colors"
+          >
+            Reset Demo
+          </button>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
@@ -331,7 +317,7 @@ export default function DormRoomDemoPage() {
             <div className="border-b border-white/10 bg-slate-900/50 px-4 py-3">
               <h2 className="text-sm font-semibold text-white">Inventory</h2>
               <p className="mt-0.5 text-xs text-slate-400">
-                {sceneObjects.filter(obj => obj.type === 'bookshelf').length} {sceneObjects.filter(obj => obj.type === 'bookshelf').length === 1 ? 'item' : 'items'} in room
+                {bookshelfCount} {bookshelfCount === 1 ? 'item' : 'items'} in room
               </p>
             </div>
             <InventoryPanel onAddItem={handleAddItem} showBookshelf={inventoryUnlocked} />
