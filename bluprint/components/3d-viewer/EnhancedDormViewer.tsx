@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, Suspense } from "react";
+import { useRef, useState, Suspense, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -30,7 +30,6 @@ const FURNITURE_SIZES = {
 
 // Color constants matching the previous better model
 const WALL_COLOR = "#F5F5F0";  // Warm cream/off-white
-const CEILING_COLOR = "#FAFAF5";  // Slightly lighter cream
 
 // ============================================================
 // MATERIALS
@@ -115,8 +114,8 @@ function Ceiling({ opacity = 1 }: { opacity?: number }) {
       <mesh position={[0, DIMENSIONS.height, 0]} receiveShadow renderOrder={11}>
         <boxGeometry args={[DIMENSIONS.width, 0.15, DIMENSIONS.depth]} />
         <meshStandardMaterial
-          color={CEILING_COLOR}
-          roughness={0.95}
+          color={WALL_COLOR}
+          roughness={0.9}
           transparent
           opacity={opacity}
           side={THREE.DoubleSide}
@@ -743,6 +742,57 @@ function Wardrobe({ position, rotation }: { position: [number, number, number]; 
   );
 }
 
+function Bookshelf({ position, rotation }: { position: [number, number, number]; rotation: number }) {
+  // Dimensions from FurnitureLibrary: 3ft wide × 1ft deep × 6ft tall
+  const width = 3;
+  const depth = 1;
+  const height = 6;
+  const shelfThickness = 0.08;
+
+  return (
+    <group position={position} rotation={[0, rotation, 0]}>
+      {/* Back panel */}
+      <mesh position={[0, height / 2, -depth / 2 + 0.05]} castShadow>
+        <boxGeometry args={[width, height, 0.1]} />
+        <WoodMaterial color="#8b7355" roughness={0.5} />
+      </mesh>
+
+      {/* Side panels */}
+      <mesh position={[-width / 2 + 0.05, height / 2, 0]} castShadow>
+        <boxGeometry args={[0.1, height, depth]} />
+        <WoodMaterial color="#8b7355" roughness={0.5} />
+      </mesh>
+      <mesh position={[width / 2 - 0.05, height / 2, 0]} castShadow>
+        <boxGeometry args={[0.1, height, depth]} />
+        <WoodMaterial color="#8b7355" roughness={0.5} />
+      </mesh>
+
+      {/* Shelves (6 shelves total, evenly spaced) */}
+      {[0, 1.2, 2.4, 3.6, 4.8, 6].map((y, i) => (
+        <mesh key={i} position={[0, y, 0]} castShadow>
+          <boxGeometry args={[width - 0.2, shelfThickness, depth - 0.1]} />
+          <WoodMaterial color="#8b7355" roughness={0.4} />
+        </mesh>
+      ))}
+
+      {/* Books on shelves (decorative) */}
+      {[1.25, 2.45, 3.65, 4.85].map((y, i) => (
+        <group key={`books-${i}`}>
+          {/* Stack of books */}
+          <mesh position={[-0.6, y + 0.25, 0.1]} castShadow>
+            <boxGeometry args={[0.8, 0.4, 0.6]} />
+            <meshStandardMaterial color={i % 2 === 0 ? "#4A5568" : "#2D3748"} roughness={0.8} />
+          </mesh>
+          <mesh position={[0.5, y + 0.2, 0.1]} castShadow>
+            <boxGeometry args={[0.6, 0.3, 0.5]} />
+            <meshStandardMaterial color={i % 2 === 0 ? "#744210" : "#5A3410"} roughness={0.8} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 // ============================================================
 // SCENE COMPONENT
 // ============================================================
@@ -751,10 +801,57 @@ interface SceneProps {
   sceneObjects: SceneObject[];
   selectedId: string | null;
   onSelect: (id: string | null) => void;
+  showGrid: boolean;
+  showBlueprint: boolean;
+  showShadows: boolean;
+  autoRotate: boolean;
+  onResetView?: () => void;
 }
 
-function Scene({ sceneObjects, onSelect }: SceneProps) {
+function BlueprintGrid({ size = 50, divisions = 50 }: { size?: number; divisions?: number }) {
+  return (
+    <gridHelper
+      args={[size, divisions, '#4A90E2', '#2A5080']}
+      position={[0, 0.01, 0]}
+      rotation={[0, 0, 0]}
+    />
+  );
+}
+
+function Scene({ sceneObjects, onSelect, showGrid, showBlueprint, showShadows, autoRotate, onResetView }: SceneProps) {
   const controlsRef = useRef<any>(null);
+  const { camera } = useThree();
+
+  // Reset view handler
+  const performReset = () => {
+    if (controlsRef.current && camera) {
+      camera.position.set(12, 8, 12);
+      camera.updateProjectionMatrix();
+      controlsRef.current.target.set(0, 2.5, 0);
+      controlsRef.current.update();
+    }
+  };
+
+  // Listen for reset events
+  useFrame(() => {
+    // Auto-rotate the camera
+    if (autoRotate && controlsRef.current) {
+      controlsRef.current.autoRotate = true;
+      controlsRef.current.autoRotateSpeed = 1.0;
+    } else if (controlsRef.current) {
+      controlsRef.current.autoRotate = false;
+    }
+  });
+
+  // Expose reset function via a custom event
+  useEffect(() => {
+    const handleReset = () => {
+      performReset();
+    };
+
+    window.addEventListener('resetDormView', handleReset);
+    return () => window.removeEventListener('resetDormView', handleReset);
+  }, []);
 
   const renderFurniture = (obj: SceneObject) => {
     const groupProps = {
@@ -773,6 +870,8 @@ function Scene({ sceneObjects, onSelect }: SceneProps) {
         return <group key={obj.id} {...groupProps}><OfficeChair position={obj.position} rotation={obj.rotation} /></group>;
       case 'shelf':
         return <group key={obj.id} {...groupProps}><Wardrobe position={obj.position} rotation={obj.rotation} /></group>;
+      case 'bookshelf':
+        return <group key={obj.id} {...groupProps}><Bookshelf position={obj.position} rotation={obj.rotation} /></group>;
       default:
         return null;
     }
@@ -780,8 +879,8 @@ function Scene({ sceneObjects, onSelect }: SceneProps) {
 
   return (
     <>
-      <color attach="background" args={["#1a1a2e"]} />
-      <fog attach="fog" args={["#1a1a2e", 25, 50]} />
+      <color attach="background" args={[showBlueprint ? "#0a1128" : "#1a1a2e"]} />
+      <fog attach="fog" args={[showBlueprint ? "#0a1128" : "#1a1a2e", 25, 50]} />
 
       {/* Hemisphere light for ambient bounce */}
       <hemisphereLight args={["#ffffff", "#444444", 0.6]} />
@@ -791,7 +890,7 @@ function Scene({ sceneObjects, onSelect }: SceneProps) {
         position={[3, 8, -10]}
         intensity={1.0}
         color="#E0E8FF"
-        castShadow
+        castShadow={showShadows}
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
         shadow-camera-left={-10}
@@ -809,6 +908,9 @@ function Scene({ sceneObjects, onSelect }: SceneProps) {
         color="#FFF8DC"
       />
 
+      {/* Grid overlay */}
+      {showGrid && <BlueprintGrid size={30} divisions={30} />}
+
       {/* Room structure */}
       <Floor />
       <Baseboards />
@@ -822,6 +924,14 @@ function Scene({ sceneObjects, onSelect }: SceneProps) {
 
       {/* Furniture from state */}
       {sceneObjects.map(renderFurniture)}
+
+      {/* Blueprint mode edges overlay */}
+      {showBlueprint && (
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[DIMENSIONS.width, DIMENSIONS.height, DIMENSIONS.depth]} />
+          <meshBasicMaterial color="#4A90E2" wireframe opacity={0.3} transparent />
+        </mesh>
+      )}
 
       <OrbitControls
         ref={controlsRef}
@@ -853,14 +963,28 @@ interface EnhancedDormViewerProps {
   sceneObjects: SceneObject[];
   selectedId: string | null;
   onSelect: (id: string | null) => void;
+  showGrid?: boolean;
+  showBlueprint?: boolean;
+  showShadows?: boolean;
+  autoRotate?: boolean;
+  onResetView?: () => void;
 }
 
-export default function EnhancedDormViewer({ sceneObjects, selectedId, onSelect }: EnhancedDormViewerProps) {
+export default function EnhancedDormViewer({
+  sceneObjects,
+  selectedId,
+  onSelect,
+  showGrid = false,
+  showBlueprint = false,
+  showShadows = true,
+  autoRotate = false,
+  onResetView
+}: EnhancedDormViewerProps) {
   return (
     <div className="relative h-full w-full min-h-[500px] bg-[#0a1128] rounded-xl overflow-hidden">
       <Suspense fallback={<LoadingScreen />}>
         <Canvas
-          shadows
+          shadows={showShadows}
           camera={{
             position: [12, 8, 12],
             fov: 65,
@@ -870,7 +994,16 @@ export default function EnhancedDormViewer({ sceneObjects, selectedId, onSelect 
           gl={{ antialias: true }}
           onPointerMissed={() => onSelect(null)}
         >
-          <Scene sceneObjects={sceneObjects} selectedId={selectedId} onSelect={onSelect} />
+          <Scene
+            sceneObjects={sceneObjects}
+            selectedId={selectedId}
+            onSelect={onSelect}
+            showGrid={showGrid}
+            showBlueprint={showBlueprint}
+            showShadows={showShadows}
+            autoRotate={autoRotate}
+            onResetView={onResetView}
+          />
         </Canvas>
       </Suspense>
     </div>

@@ -2,7 +2,7 @@
 
 export interface SceneObject {
   id: string;
-  type: 'bed' | 'desk' | 'chair' | 'shelf' | 'wardrobe' | 'window' | 'corkboard' | 'bag';
+  type: 'bed' | 'desk' | 'chair' | 'shelf' | 'wardrobe' | 'window' | 'corkboard' | 'bag' | 'bookshelf';
   name: string;
   position: [number, number, number];
   rotation: number; // Y-axis rotation in radians
@@ -23,13 +23,22 @@ export interface FurnitureItem {
   color: string;
 }
 
-// Initial furniture catalog for inventory
+// Initial furniture catalog for inventory (bookshelf added after unlock)
 export const furnitureInventory: FurnitureItem[] = [
   { id: 'bed-item', type: 'bed', name: 'Twin Bed', dimensions: '6.25\' × 3.25\'', color: 'Oak wood frame' },
   { id: 'desk-item', type: 'desk', name: 'Desk with Hutch', dimensions: '4\' × 2\'', color: 'Medium oak' },
   { id: 'chair-item', type: 'chair', name: 'Office Chair', dimensions: '1.2\' × 1.2\'', color: 'Black mesh' },
   { id: 'shelf-item', type: 'shelf', name: 'Wardrobe', dimensions: '4\' × 2\'', color: 'Oak with shelving' },
 ];
+
+// Bookshelf item - shown only after extension unlock
+export const bookshelfItem: FurnitureItem = {
+  id: 'bookshelf-item',
+  type: 'bookshelf',
+  name: 'Bookshelf (Demo Asset)',
+  dimensions: '3\' × 1\' × 6\'',
+  color: 'Oak finish (#8b7355)'
+};
 
 // Room dimensions (matching photos - standard dorm room)
 export const ROOM = {

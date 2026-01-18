@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -29,10 +29,62 @@ export default function DormRoomDemoPage() {
   const [sceneObjects, setSceneObjects] = useState<SceneObject[]>(initialSceneState);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [showGrid, setShowGrid] = useState(true);
-  const [showBlueprint, setShowBlueprint] = useState(true);
+  const [showGrid, setShowGrid] = useState(false);
+  const [showBlueprint, setShowBlueprint] = useState(false);
   const [showShadows, setShowShadows] = useState(true);
   const [cameraMode, setCameraMode] = useState<'orbit' | 'topDown' | 'firstPerson'>('orbit');
+  const [inventoryUnlocked, setInventoryUnlocked] = useState(false);
+  const [autoRotate, setAutoRotate] = useState(false);
+
+  // Poll API for storage status (reliable cross-tab sync via server)
+  useEffect(() => {
+    const checkStorageStatus = async () => {
+      try {
+        const response = await fetch('/api/storage/status');
+        const data = await response.json();
+
+        if (data.success && data.state.unlocked) {
+          if (!inventoryUnlocked) {
+            console.log('[BluPrint Web] ✅ Storage unlocked via API poll:', data.state);
+          }
+          setInventoryUnlocked(true);
+        } else {
+          if (inventoryUnlocked) {
+            console.log('[BluPrint Web] 🔒 Storage locked via API poll');
+          }
+          setInventoryUnlocked(false);
+        }
+      } catch (error) {
+        console.error('[BluPrint Web] ❌ Failed to check storage status:', error);
+      }
+    };
+
+    // Check immediately on mount
+    checkStorageStatus();
+
+    // Poll every 500ms for instant feedback
+    const interval = setInterval(checkStorageStatus, 500);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [inventoryUnlocked]);
+
+  const handleClearStorage = async () => {
+    try {
+      console.log('[BluPrint Web] Resetting storage via API...');
+      const response = await fetch('/api/storage/reset', { method: 'POST' });
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('[BluPrint Web] ✅ Storage reset successful');
+        setInventoryUnlocked(false);
+      }
+    } catch (error) {
+      console.error('[BluPrint Web] ❌ Failed to reset storage:', error);
+      setInventoryUnlocked(false);
+    }
+  };
 
   const handleAddItem = (type: SceneObject['type']) => {
     const newId = `${type}-${Date.now()}`;
@@ -80,7 +132,10 @@ export default function DormRoomDemoPage() {
   };
 
   const handleResetView = () => {
-    console.log('Reset view');
+    // Dispatch custom event to reset the view
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('resetDormView'));
+    }
   };
 
   return (
@@ -100,9 +155,23 @@ export default function DormRoomDemoPage() {
           <span className="hidden rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-slate-400 sm:inline">
             {ROOM.width} × {ROOM.depth} feet
           </span>
+          {/* Debug indicator */}
+          <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+            inventoryUnlocked
+              ? 'border-green-400/20 bg-green-500/20 text-green-100'
+              : 'border-orange-400/20 bg-orange-500/20 text-orange-100'
+          }`}>
+            Storage: {inventoryUnlocked ? 'Unlocked' : 'Locked'}
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleClearStorage}
+            className="rounded-full border border-red-400/20 bg-red-500/20 px-4 py-2 text-xs text-red-100 hover:bg-red-500/30 transition-colors"
+          >
+            Reset Demo
+          </button>
           <button className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-200 hover:bg-white/10 transition-colors">
             Save
           </button>
@@ -117,16 +186,18 @@ export default function DormRoomDemoPage() {
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar - Inventory */}
-        <div className="w-72 flex-shrink-0 border-r border-white/10 bg-slate-900/30">
-          <div className="border-b border-white/10 bg-slate-900/50 px-4 py-3">
-            <h2 className="text-sm font-semibold text-white">Inventory</h2>
-            <p className="mt-0.5 text-xs text-slate-400">
-              {sceneObjects.length} items in room
-            </p>
+        {/* Left Sidebar - Inventory (hidden until unlocked) */}
+        {inventoryUnlocked && (
+          <div className="w-72 flex-shrink-0 border-r border-white/10 bg-slate-900/30">
+            <div className="border-b border-white/10 bg-slate-900/50 px-4 py-3">
+              <h2 className="text-sm font-semibold text-white">Inventory</h2>
+              <p className="mt-0.5 text-xs text-slate-400">
+                {sceneObjects.length} items in room
+              </p>
+            </div>
+            <InventoryPanel onAddItem={handleAddItem} showBookshelf={inventoryUnlocked} />
           </div>
-          <InventoryPanel onAddItem={handleAddItem} />
-        </div>
+        )}
 
         {/* Center - 3D Viewer */}
         <div className="relative flex-1">
@@ -134,6 +205,11 @@ export default function DormRoomDemoPage() {
             sceneObjects={sceneObjects}
             selectedId={selectedId}
             onSelect={setSelectedId}
+            showGrid={showGrid}
+            showBlueprint={showBlueprint}
+            showShadows={showShadows}
+            autoRotate={autoRotate}
+            onResetView={handleResetView}
           />
 
           {/* Floating controls */}
@@ -143,9 +219,11 @@ export default function DormRoomDemoPage() {
               showBlueprint={showBlueprint}
               showShadows={showShadows}
               cameraMode={cameraMode}
+              autoRotate={autoRotate}
               onToggleGrid={() => setShowGrid(!showGrid)}
               onToggleBlueprint={() => setShowBlueprint(!showBlueprint)}
               onToggleShadows={() => setShowShadows(!showShadows)}
+              onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
               onChangeCameraMode={setCameraMode}
               onResetView={handleResetView}
             />

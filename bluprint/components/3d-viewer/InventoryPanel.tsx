@@ -1,13 +1,15 @@
 "use client";
 
-import { furnitureInventory, FurnitureItem, SceneObject } from "@/lib/dormRoomState";
+import { furnitureInventory, bookshelfItem, FurnitureItem, SceneObject } from "@/lib/dormRoomState";
 import { Plus } from "lucide-react";
 
 interface InventoryPanelProps {
   onAddItem: (type: SceneObject['type']) => void;
+  showBookshelf?: boolean;
 }
 
-export default function InventoryPanel({ onAddItem }: InventoryPanelProps) {
+export default function InventoryPanel({ onAddItem, showBookshelf = false }: InventoryPanelProps) {
+  const inventory = showBookshelf ? [...furnitureInventory, bookshelfItem] : furnitureInventory;
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-4">
@@ -17,7 +19,7 @@ export default function InventoryPanel({ onAddItem }: InventoryPanelProps) {
         </p>
 
         <div className="space-y-3">
-          {furnitureInventory.map((item) => (
+          {inventory.map((item) => (
             <button
               key={item.id}
               onClick={() => onAddItem(item.type)}

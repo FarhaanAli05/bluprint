@@ -248,7 +248,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse(result);
     return true; // Indicates we will send a response asynchronously
   }
-  
+
+  if (request.action === 'unlockInventory') {
+    try {
+      // Write to localStorage to signal the website (works if we're on localhost)
+      localStorage.setItem('bluprint_storage_unlocked', 'true');
+      localStorage.setItem('bluprint_storage_timestamp', Date.now().toString());
+      if (request.data && request.data.item) {
+        localStorage.setItem('bluprint_storage_item', JSON.stringify(request.data.item));
+      }
+
+      // Also send a postMessage event for cross-tab/cross-origin communication
+      window.postMessage({
+        type: 'BLUPRINT_STORAGE_UNLOCK',
+        source: 'bluprint-extension',
+        timestamp: Date.now(),
+        items: ['bookshelf_demo']
+      }, '*');
+
+      console.log('[BluPrint] Inventory unlocked via extension - localStorage + postMessage sent');
+      sendResponse({ success: true });
+    } catch (error) {
+      console.error('[BluPrint] Failed to unlock inventory:', error);
+      sendResponse({ success: false, error: error.message });
+    }
+    return true;
+  }
+
   return false;
 });
 
