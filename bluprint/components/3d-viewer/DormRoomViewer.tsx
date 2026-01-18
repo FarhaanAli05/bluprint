@@ -10,7 +10,7 @@ import * as THREE from "three";
 // ============================================================
 const ROOM = {
   width: 12,      // X axis
-  depth: 10,      // Z axis  
+  depth: 14,      // Z axis
   height: 9,      // Y axis
   wallThickness: 0.3,
   baseboardHeight: 0.4,
@@ -142,23 +142,30 @@ function Ceiling() {
 }
 
 function Baseboards() {
+  const baseboardThickness = 0.1;
+  const baseboardInset = 0.01;
+  const baseboardY = ROOM.baseboardHeight / 2 + 0.005;
+  const backWallInnerZ = -ROOM.depth / 2 + ROOM.wallThickness / 2;
+  const leftWallInnerX = -ROOM.width / 2 + ROOM.wallThickness / 2;
+  const rightWallInnerX = ROOM.width / 2 - ROOM.wallThickness / 2;
+
   return (
     <group>
       {/* Back baseboard */}
-      <mesh position={[0, ROOM.baseboardHeight / 2, -ROOM.depth / 2 + 0.1]}>
-        <boxGeometry args={[ROOM.width, ROOM.baseboardHeight, 0.1]} />
+      <mesh position={[0, baseboardY, backWallInnerZ + baseboardThickness / 2 + baseboardInset]}>
+        <boxGeometry args={[ROOM.width, ROOM.baseboardHeight, baseboardThickness]} />
         <meshStandardMaterial color="#1A1A1A" />
       </mesh>
       
       {/* Left baseboard */}
-      <mesh position={[-ROOM.width / 2 + 0.1, ROOM.baseboardHeight / 2, 0]}>
-        <boxGeometry args={[0.1, ROOM.baseboardHeight, ROOM.depth]} />
+      <mesh position={[leftWallInnerX + baseboardThickness / 2 + baseboardInset, baseboardY, 0]}>
+        <boxGeometry args={[baseboardThickness, ROOM.baseboardHeight, ROOM.depth]} />
         <meshStandardMaterial color="#1A1A1A" />
       </mesh>
       
       {/* Right baseboard */}
-      <mesh position={[ROOM.width / 2 - 0.1, ROOM.baseboardHeight / 2, 0]}>
-        <boxGeometry args={[0.1, ROOM.baseboardHeight, ROOM.depth]} />
+      <mesh position={[rightWallInnerX - baseboardThickness / 2 - baseboardInset, baseboardY, 0]}>
+        <boxGeometry args={[baseboardThickness, ROOM.baseboardHeight, ROOM.depth]} />
         <meshStandardMaterial color="#1A1A1A" />
       </mesh>
     </group>
@@ -170,17 +177,24 @@ function Baseboards() {
 // ============================================================
 
 function Window() {
+  const glassZ = 0.08;
+  const largePaneWidth = 2.4;
+  const smallPaneWidth = 1.2;
+  const paneHeight = 3.6;
+  const paneGap = 0.1;
+  const dividerX = (largePaneWidth - smallPaneWidth) / 2 + paneGap / 2;
+
   return (
-    <group position={[1.5, 4.5, -ROOM.depth / 2 + 0.2]}>
+    <group position={[1.5, 4.5, -ROOM.depth / 2 + 0.32]}>
       {/* Window frame */}
       <mesh>
         <boxGeometry args={[4, 4, 0.3]} />
         <meshStandardMaterial color="#8B7355" />
       </mesh>
       
-      {/* Window glass */}
-      <mesh position={[0, 0, 0.1]}>
-        <boxGeometry args={[3.6, 3.6, 0.1]} />
+      {/* Window glass - large pane */}
+      <mesh position={[-dividerX, 0, glassZ]}>
+        <boxGeometry args={[largePaneWidth, paneHeight, 0.02]} />
         <meshStandardMaterial 
           color="#87CEEB" 
           transparent 
@@ -190,15 +204,21 @@ function Window() {
         />
       </mesh>
       
-      {/* Window divider - vertical */}
-      <mesh position={[0, 0, 0.2]}>
-        <boxGeometry args={[0.1, 3.6, 0.15]} />
-        <meshStandardMaterial color="#FFFFFF" />
+      {/* Window glass - small pane */}
+      <mesh position={[dividerX, 0.4, glassZ]}>
+        <boxGeometry args={[smallPaneWidth, paneHeight - 0.8, 0.02]} />
+        <meshStandardMaterial 
+          color="#87CEEB" 
+          transparent 
+          opacity={0.3}
+          metalness={0.9}
+          roughness={0.1}
+        />
       </mesh>
       
-      {/* Window divider - horizontal */}
-      <mesh position={[0, 0.5, 0.2]}>
-        <boxGeometry args={[3.6, 0.1, 0.15]} />
+      {/* Vertical divider frame */}
+      <mesh position={[dividerX - paneGap / 2, 0, 0.2]}>
+        <boxGeometry args={[paneGap, 3.6, 0.15]} />
         <meshStandardMaterial color="#FFFFFF" />
       </mesh>
       
@@ -381,8 +401,8 @@ function DeskWithHutch() {
         
         {/* Decorative items on hutch */}
         {/* Clock */}
-        <mesh position={[-0.8, 1.2, 0.2]}>
-          <cylinderGeometry args={[0.2, 0.2, 0.1, 16]} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh position={[-0.8, 1.2, 0.2]} rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.2, 0.2, 0.1, 16]} />
           <meshStandardMaterial color="#FFFFFF" />
         </mesh>
         
@@ -424,7 +444,7 @@ function DeskWithHutch() {
 
 function OfficeChair() {
   return (
-    <group position={[ROOM.width / 2 - 3, 0, 0.5]}>
+    <group position={[ROOM.width / 2 - 3, 0, 0.5]} rotation={[0, Math.PI, 0]}>
       {/* Chair base with wheels */}
       <group position={[0, 0.15, 0]}>
         {/* Star base */}
@@ -498,9 +518,12 @@ function Wardrobe() {
   const wardrobeWidth = 4;
   const wardrobeDepth = 2;
   const wardrobeHeight = 6;
+  const backWallInnerZ = -ROOM.depth / 2 + ROOM.wallThickness / 2;
+  const backWallClearance = 0.02;
+  const wardrobeZ = backWallInnerZ + wardrobeDepth / 2 + backWallClearance;
   
   return (
-    <group position={[-ROOM.width / 2 + wardrobeWidth / 2 + 0.5, 0, ROOM.depth / 2 - wardrobeDepth / 2 - 0.5]}>
+    <group position={[-ROOM.width / 2 + wardrobeWidth / 2 + 0.5, 0, wardrobeZ]}>
       {/* Main cabinet body */}
       <mesh position={[0, wardrobeHeight / 2, 0]} castShadow>
         <boxGeometry args={[wardrobeWidth, wardrobeHeight, wardrobeDepth]} />
@@ -781,8 +804,8 @@ export default function DormRoomViewer() {
           camera={{
             position: [12, 8, 12],
             fov: 65,
-            near: 0.1,
-            far: 100,
+            near: 0.2,
+            far: 50,
           }}
           gl={{ antialias: true }}
         >
@@ -819,7 +842,7 @@ export default function DormRoomViewer() {
       <div className="absolute bottom-4 left-4">
         <div className="rounded-xl bg-black/60 px-4 py-2 backdrop-blur-sm">
           <p className="text-xs text-white/60">Dorm Room</p>
-          <p className="text-sm font-medium text-white">12' × 10' × 9'</p>
+          <p className="text-sm font-medium text-white">12' × 14' × 9'</p>
         </div>
       </div>
     </div>
