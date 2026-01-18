@@ -5,7 +5,6 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import GlassNavigation from "./GlassNavigation";
 import MouseSpotlight from "./MouseSpotlight";
-import ShopifyBadge from "./ShopifyBadge";
 
 // Dynamically import 3D visualizer to avoid SSR issues
 const Room3DVisualizer = dynamic(() => import("./Room3DVisualizer"), {
@@ -26,29 +25,14 @@ export default function LandingHero() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#0b0f1a]">
-      {/* Animated gradient background */}
+      {/* Blurred blueprint background */}
       <div
-        className="absolute inset-0"
-        style={{
-          background: `
-            radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.25) 0%, transparent 50%),
-            radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.2) 0%, transparent 45%),
-            radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 60%),
-            linear-gradient(180deg, #0b0f1a 0%, #0f172a 100%)
-          `,
-        }}
+        className="absolute inset-0 scale-110 bg-[url('/blueback.png')] bg-cover bg-center blur-[1px]"
+        aria-hidden="true"
       />
-
-      {/* Animated grid pattern */}
       <div
-        className="absolute inset-0 opacity-30"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: "60px 60px",
-        }}
+        className="absolute inset-0 bg-gradient-to-b from-[#0b0f1a]/80 via-[#0b0f1a]/60 to-[#0f172a]/80"
+        aria-hidden="true"
       />
 
       {/* Mouse spotlight */}
@@ -62,21 +46,6 @@ export default function LandingHero() {
         <div className="mx-auto flex h-full w-full max-w-7xl flex-col items-center gap-8 lg:flex-row lg:gap-16">
           {/* Left side - Hero content */}
           <div className="flex flex-1 flex-col justify-center lg:max-w-xl">
-            {/* Animated badge */}
-            <div
-              className={`mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-4 py-1.5 transition-all duration-700 ${
-                mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-              }`}
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-violet-500" />
-              </span>
-              <span className="text-sm font-medium text-violet-200">
-                AI-Powered Interior Design
-              </span>
-            </div>
-
             {/* Headline */}
             <h1
               className={`text-4xl font-bold leading-tight tracking-tight text-white transition-all delay-100 duration-700 sm:text-5xl lg:text-6xl ${
@@ -158,27 +127,6 @@ export default function LandingHero() {
               </Link>
             </div>
 
-            {/* Trust badges */}
-            <div
-              className={`mt-10 flex items-center gap-6 transition-all delay-500 duration-700 ${
-                mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-              }`}
-            >
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="h-8 w-8 rounded-full border-2 border-[#0b0f1a] bg-gradient-to-br from-violet-400 to-blue-400"
-                    style={{
-                      background: `linear-gradient(135deg, hsl(${260 + i * 15}, 70%, 60%), hsl(${220 + i * 15}, 70%, 60%))`,
-                    }}
-                  />
-                ))}
-              </div>
-              <p className="text-sm text-white/50">
-                <span className="font-semibold text-white/70">500+</span> rooms designed this month
-              </p>
-            </div>
           </div>
 
           {/* Right side - 3D Visualizer */}
@@ -225,8 +173,6 @@ export default function LandingHero() {
         </div>
       </main>
 
-      {/* Shopify badge */}
-      <ShopifyBadge />
     </div>
   );
 }

@@ -9,7 +9,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "BluPrint — Your goals, blueprinted.",
+  title: "bluprint — Your goals, blueprinted.",
   description: "Upload your room → visualize furniture placements in 3D",
 };
 

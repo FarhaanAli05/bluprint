@@ -16,8 +16,8 @@ export default function MouseSpotlight() {
     let animationId: number;
     const animate = () => {
       // Ease towards mouse position (creates smooth lag effect)
-      currentPos.current.x += (mousePos.current.x - currentPos.current.x) * 0.08;
-      currentPos.current.y += (mousePos.current.y - currentPos.current.y) * 0.08;
+      currentPos.current.x += (mousePos.current.x - currentPos.current.x) * 0.2;
+      currentPos.current.y += (mousePos.current.y - currentPos.current.y) * 0.2;
 
       if (spotlightRef.current) {
         spotlightRef.current.style.left = `${currentPos.current.x}px`;
@@ -43,10 +43,10 @@ export default function MouseSpotlight() {
   return (
     <div
       ref={spotlightRef}
-      className="pointer-events-none fixed z-50 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 opacity-60"
+      className="pointer-events-none fixed z-50 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 opacity-90"
       style={{
         background:
-          "radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(96, 165, 250, 0.08) 30%, transparent 70%)",
+          "radial-gradient(circle, rgba(139, 92, 246, 0.32) 0%, rgba(96, 165, 250, 0.2) 30%, transparent 70%)",
       }}
     />
   );
