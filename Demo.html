@@ -144,6 +144,13 @@
             color: #0058a3;
             margin-bottom: 30px;
         }
+        .ikea-logo-img {
+            width: 110px;        /* adjust if you want */
+            height: auto;
+            display: block;
+            margin-bottom: 30px; /* matches your previous spacing */
+        }
+
 
         .product-placeholder {
             display: flex;
@@ -927,7 +934,7 @@
             <!-- Browser Content -->
             <div class="browser-content">
                 <div class="ikea-page">
-                    <div class="ikea-logo">IKEA</div>
+                    <img class="ikea-logo-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWMAAACOCAMAAADTsZk7AAAAz1BMVEX72RQAWKsAWKP/3wAAVaVYeon/3QBcfYYAV6z/4AD/3AgAVKZSdY8AVa0ATrH92hAAUKgAUqcAS6oAU66PmW4AULBrhX5if4UAVqRPcpNIb5SvrFerqloATLIATqlziXvnzienp2DSwjnjyzDx1BxFcY8AQ65de5LOvkXgyDyPmHVrhIaJkn7EuUkqZaDCt08nZpWen3GnpWu3sVXhyTZCbZwKXaR4iYU7bpe8s1SeoWswaJ2FknqnpmQhYqJPdooAP7B4jXeDlG7Hu0LLulB9xJ1+AAAOt0lEQVR4nO2de0OiShjG0akJUEBTijQVkDbU9ZKaecu2037/z3QG0RKYGVAHdIvnr3M2GYafr887d7hMqrjFnboCP0Ap4/iVMo5fKeP4lTKOX2fJmOd5SSohqWvJrtb/XXcU+FfV+bAkoetOXXWczoSxQ3XNVJZrNTm3eq483t4s209Dozrqd2271Ro3m019R83muNUy7W5/VDWGT+1l4/ax8ry6UNHl8pr5+RA/MWOHLAKr8pNFvvO7bMy6pm6JEIK1IITiWgpJ7p/h1wUip5vdmVH+3ckvJhl1zRsF+Ekf8jSMed6N2VLvsVE2+g5XwUXk4OSOkQveYS5ASx93758alwPeje0TsU6Y8TpuZXnyfNs2/o4tAZFlwJXKG+EWBG7812h3nieIdfKoE2OM6DqeMOiUR6albNDGQhaPew1bscxZ+WWKPERNkHQCjJExqHJNu2u8dnUoILhJsvWjVhBqAeq2scxnawmRjpmxE7xSrzPs6o7diqeD6xWKalQfyx6+PPMO6HghxMfYiV75uWGY1jnR3ZUT04Br3b9PHe+IL6BjYbz23t7Lq4laC6d0hihC7oHMwzRuFqiZE49zsGcslWRp2u5bEMDzprsrBBpa3XZFklX2xsGWMeKr3pVtTjhPc6ALWYfA2U+PddbxzI4xX5JL07Ytnqn5RhSyaNEuV9CzsMPMiLGkypPGzEJ8Tw2JgRBnq/97wsw2GDBGDQi1Mh876e3UdJjJSYTN4Z3KpLlxLGPkEPxV1fqX8ltUKSicR7eZ413jKMYIsNSZcd8pgL1C4az0X6QjMR/BWFL5Th9+X8AboSTe7WTkI7z5UMa8Kj9WUQSfmkAiEgE3uzw8BR7EmC/VFnNL+O4RvCNFFKzXRe0wzziAMa9KDfM7Jjm6UApsNfhDgnlvxlKtZ3DgpwF2pQDuHgVzvIxRQ+LSFn5cCH8JeYbZ2bfRvA9jXi0t9R+S5shSgN5GTapYGPOq9vRTTcIrZBnD7B6UozLm1cmrmBLeSIHQmMhRKUdjjGL4VYSnfrKzEqKsRYzlSIxVfg5Twn5B+JpRGTEuqW0OnPqBzlKQa6sRWnKhjPnalZ76MEGojXFbC+2VhDFWe3ZKmCIF2L0ww6AzluSnbzGzEadEOA8ZlKMylit6asThAvodtR1HYSzJr6lNRJICDNpYEZmxumimQRxVoPlMdmUSY15e/uChn2hyFjpvGSlwWSP5BYGxpM6Ek9b//KUAq38/Gn+OkQl9kl/gGZdWetqvo0vUb//UsoU/k+rWUaG+wndIsIzVB263xaaAUPlsRdzv41zk8mF4VSgi4Nqn0G3oiWZh1YUCaN78aWzLFbk81pRxjOWOx4qVj7erEL3pHmpil37Fm+2FDN7pxV9eNt0LYPkuf7ge8L9NWL6Jrv/cMhSukBcad5X8vTD7U95CVkBHjsZYXnqtWOHqObqKA2+IKFaN+vmC4vt4kf7xnr75WYn964vDVcAHMngohDzfTlXybhlgqXHC4PZpWZsL5dpXhAlLDOQg41rbn+2EgZalKtfw1R4saFdc3Hk/DspFWunFB+4ze+t1ek3o1SQwzoY83o60rFuGmC0DMKgKwnwlcIXh1w9EaNfCGcsBxBx4u6Dfudj2/QrBA+2K3JXnYRWrQC38Yde5riPjwNwXy1gx9/ne6l1xXeU/trhmXB4A4a2zU7DQDkSyn7HcCLbZwGUY47KfcZ7K+NbzsOAqR/vwdHchvsieMVjSbo+vu6L/MRUwvXu5vf4QQccTM8K7H7KPcekSU494GYMqLY4uetyuecfAWNzDKpAKluLE8a+ZCKad4QLlLmHa8MWMSmMsLXCdu1gZK02aU2ia7hn3Y89Y7O9n8cW586ywdyU4XmH+0kW9VvXUUYELicyYl3Rc/zlOxqhCtI/WTe/QKnvGdKcKSus5pcDhrw+hZ4jg9k24LHK+dpLu3evgYVzrYluQcTIGHVqb4nrkw8KcMWo37llK/cP52sGg/vHRFEWr2vkz8lOD3RqJsYrJdzEzBq+0X2q97KfCnDE0qI0aXCnrVoRiDX5djUx7vvr1GixWaKh4xnyWsJUuPsaiSWNWvAp858wZC9O9Mp6jupP1OEWca7+Q3kzcr0PJ8ljGcp8wrRQbY8Wi5fTcNLj4ljVjZbx/gcVNlwOC8V/bwk9jiH0Zx1i6w3eDYmQMHij5RstaweqHMNYoPWlNwzAG7X3tGN1ksH1ahbyJFjxIGMY1k/j5mBgLS4oXaoUW5mdFZ6wt7sga5GpBxuJqb6tAmdgOn71QzFqQsZQnDsrHxBiMaMCuZ9jWLJVx8V6gjEoq3aD1dA8Z/8jdRJiEE/JSgLHcJU7yx8NYbBYpMRRsUkRhbFBnFoIPCDr7NY639+HCA1nsyn7G/IpcvVgYKxztZ1rs4H9VRzEOaP/GsatClPvAFe9jXGqT4z8WxuCK8ny5CuEh2DIW7wkJYbKiPq82jWAWoF3yMSZnvHgYgznFCbUJpknhUmHKmDQEq03bdA+5ptDa6ivrcdv+B6V2MTCGtGSjFcek3BCa80S8sEiUJqG03PKD3vsLTErgBLf9kA1j6YpyEXvGgpWj5bs+sTJ0xrnGqIrV/Rg71kWaf6l/ADpjTYuQ9cCl5GGsPiUax8KA8vccYdgknHE2V8CrZuB+GJCQdbUJBO90syjchy+1hE+ql/GMcg1zxjdL+gRekxgkB/alsUhEm+BXxTYIm4DSpuFLfMSZl7FMM3HWjLMrepBckNM2S8bghlCNOnIWEDJWdI11H48UU/bGMTl0YmAcpsKcBJlpHBM8VxsI4WOeuWVo1lOaPq/AToCcinG2TvrKGTIWqwSKhVcYOlme1bKhWU/Rz5rxxeCgPghROMbEOhbXjXOik2yLrIZlvQDjs/IK9AT44QqGjInLYTarP4gZcaOLh7Cs5/eKZHNehPHEa3w3hB1jOCc1jjdTFfS1ThQ/+2Tsz3lJtt20CPM7BLdgxxj0CI1jbXNjOKQPGBUpIzxuXX1tt2T7IDfz8IlKvFsw64MQG8CfDYawQTnUU6Ez9vdBku5L0/p5G12be8+D5BrVe6yMVmDFc4PUOG7BzVn3Qsjgcp00//mJzduXTnhMSIgwVaktMFViNiakaASr6I3NrQx6IF+80bOef0woUwt803EyBiCKW2AMj9XYpjgj3V+rfypsAL9Aa/AGxzYTH6OH03C38C/EYsg49JGiKPDY3lsExuiTnmtSmuGzlVovUCdGjBX9sEkmX/0mNLMIzjUlPmcaxS2KgUGBYxgrXw8Y1i6LqDqZGW7ONPm5fxDBLQJti2Pm/rnq17aNkP5FRPkWq3uEm/tPfA2L0gyPJW3lW4gTtoalQtR0Ubj+3H/UOmZJ146KpHlH/BqW5Ndi0ddsbkp+9/66Dl6LpWk7a7H2255Aq96cZE7gDrcWK/k1hdTlbhtd2zGsoxcnTKxiu+AbI8KawuTXxkbJ7tqK/X6QfbcnUFS3sXFJXBub/BpvYERwC0+lmDAmbk/QMLseQ4rEL30jrvE+wV4F8BbBLXYbSCwYE6c4tMV7I6CQMrFZj7JXIfk9N4pFW1e4efLJjluwYAxfSZNM1WDTTwhbBIBpklP33CS/dyySW9x8uQULxsQp5xxmii5soT1m6Rt979gJ9kCCSoSeSP+zeAaMySuwsN4qULclO4MqgWFT+h7I5Pfy0nfduNrZtcCAMXF7Ar5nLI5CFgG8+76Z0L28ye9JFyJMr+bePi84njFxBVYWv/CQo08/akXvNxNhT3riZyuI/Qgb5Ar/uXVicLYCJC2ryHXw/YmwRQBFz4KbSGcr4M4IKeToh28EzgjhZNoVucLuVy9ehJTuSHY3Gh51RkiusF6+rxFuVyf0i+FrPaTYncZYxDNCMGfd5C9DFDjrhn5FfndjEHh/Cyse6WF9CSxH+SyxltApoULY91QhLEoR+yH3fGt87iWLfNZN0mc2hZf+dcnxZzaRSyCuKw8r9vMcpz3ObErPHjtI+509lp6hd4D2PUMvPQtyXx1wFmQmPdN0Lx10pmkmPZs3ug4+mzeTnjEdUUecMZ1Jz0qPIhHOQ15Glp75f5yOP/M/k767gio2767IpO9gIYvVO1gcpe8Swonlu4Qy6TuxMILwnuk7sTLpu928iuPdbi7l9B2FruJ6R6FLOX3XZrzv2lxTTt8ZG/M7Y9dK330c87uP10rf4R0/4x/7Lvrn5N5F72JW5ccR90MSoAi42aV8SAgfxTjjDMrxnT4E3z2aRQC7L5mQ1xDGxXjdzJA6M+77YlZQt6v/IsmHeQQTxi5m/rZqfccUiJKcNbrNHAmYAeM1ZlWtzMfCdwpnFMBCc3in7tsUjouxI0mVJ40ZCufvkARFFMD935PDk5xPjBhn1q5RmrZtlCL+4XhWEF9olyul4x3iS+wYO5JKsnpXti3hX+SM+Aqc/fRYl0sSO8AZ1owdIc7StN234L+UB5H/QqvfrkjMDGJH7BlnnL07JbXW67yaopMIz5u04qQ3aBovC5l1/G4VC+O1UHNDlp8bhmmBM7Vox3wB17p/n6oykwYEQfExXgsFtCz1OsOuDs6JtCI6C14te/jyzCO87O3Bo5gZO+KdiK5pd43Xrg4Fh/TpUCtO7ApQt41lPltzoje+8P1UAoxdOR4tq/ygUx6ZluIEdaKsUeQiY1Asc1Z+mWYcb4jHe3FKjLErRNqx6cnz1dLojy1B2MCOhzYqd41WELjxX6PdmU5kBDdBuq4SZrwRsg/UAUeJvPfYKBt9U7dEZxstZMB7zdUBCwTR0sfd+3LjciEhtieAu9FpGH9qHdeOh0x6D53fZWP012xaItxs2oAO9PXxbCS5f4ZfF4hW0/w7Msq/O/nFhFfduD0R261OzHgrnndoI9woO9ZqxdWi8nh7s2w/DY37Ub9r22ZrPG429S81m+Nxq2Xb3f6oagyf2sub28fK84pHV7sxi4I2iXwWRWfC2CuHuIPcYe5gd+X+T71ex/yr82HpfKh6dZaMv5lSxvErZRy/UsbxK2Ucv1LG8et/WETvbGvrvAEAAAAASUVORK5CYII=" alt="IKEA logo" />
                     <div class="product-placeholder">
                         <div class="product-image-placeholder"></div>
                         <div class="product-info-placeholder">
@@ -1016,6 +1023,8 @@
         const initialState = document.getElementById('initialState');
         const previewState = document.getElementById('previewState');
         const successState = document.getElementById('successState');
+        const CURSOR_HOME_X = 450;
+        const CURSOR_HOME_Y = 300;
 
         // Animation functions
         function animateCursor(x, y, duration = 800, callback) {
@@ -1119,8 +1128,8 @@
 
         function resetDemo() {
             cursor.classList.remove('visible');
-            cursor.style.left = '-100px';
-            cursor.style.top = '-100px';
+            cursor.style.left = `${CURSOR_HOME_X}px`;
+            cursor.style.top = `${CURSOR_HOME_Y}px`;
             popup.classList.remove('visible');
             showPage(initialState);
             setLoading(false); // Reset button
@@ -1198,7 +1207,7 @@
             if (!isAutomated) return;
             
             // Move cursor away smoothly
-            await animateCursor(850, 550, 600);
+            await animateCursor(CURSOR_HOME_X, CURSOR_HOME_Y, 600);
             cursor.classList.remove('visible');
 
             // Brief pause before loop restarts
