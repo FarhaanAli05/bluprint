@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { initialSceneState, SceneObject, ChatMessage, parseCommand, ROOM } from "@/lib/dormRoomState";
 import InventoryPanel from "@/components/3d-viewer/InventoryPanel";
-import ChatbotPanel, { TYPING_INDICATOR_TOKEN } from "@/components/3d-viewer/ChatbotPanel";
-import TopToolbar from "@/components/3d-viewer/TopToolbar";
+import ChatbotPanel from "@/components/3d-viewer/ChatbotPanel";
+import TopHeader from "@/components/shared/TopHeader";
+import { useChatDemo } from "@/hooks/useChatDemo";
+import { useResetDemo } from "@/hooks/useResetDemo";
 
 // Dynamic import to avoid SSR issues with Three.js
 const EnhancedDormViewer = dynamic(
@@ -63,22 +63,25 @@ export default function DormRoomDemoPage() {
   const [inventoryUnlocked, setInventoryUnlocked] = useState(false);
   const [autoRotate, setAutoRotate] = useState(false);
   const [chatTurn, setChatTurn] = useState(0); // Track chat turn for scripted behavior
-  const [isChatBusy, setIsChatBusy] = useState(false);
-  const chatTimeoutsRef = useRef<number[]>([]);
 
   const bookshelfCount = useMemo(
     () => sceneObjects.filter((obj) => obj.type === "bookshelf").length,
     [sceneObjects]
   );
 
-  useEffect(() => {
-    return () => {
-      chatTimeoutsRef.current.forEach((timeoutId) => {
-        clearTimeout(timeoutId);
-      });
-      chatTimeoutsRef.current = [];
-    };
-  }, []);
+  // Use shared chat demo hook
+  const { isChatBusy, sendMessageWithDelay, clearAllTimeouts, setIsChatBusy } = useChatDemo();
+
+  // Use shared reset demo hook
+  const { handleResetDemo } = useResetDemo({
+    setIsChatBusy,
+    setChatTurn,
+    setMessages,
+    setSelectedId,
+    setSceneObjects,
+    setInventoryUnlocked,
+    clearAllTimeouts,
+  });
 
   // Poll API for storage status (reliable cross-tab sync via server)
   useEffect(() => {
@@ -130,36 +133,6 @@ export default function DormRoomDemoPage() {
     };
   }, [inventoryUnlocked]);
 
-  const resetDemoState = () => {
-    chatTimeoutsRef.current.forEach((timeoutId) => {
-      clearTimeout(timeoutId);
-    });
-    chatTimeoutsRef.current = [];
-    setIsChatBusy(false);
-    setChatTurn(0);
-    setMessages([]);
-    setSelectedId(null);
-    setSceneObjects(initialSceneState);
-    setInventoryUnlocked(false);
-  };
-
-  const handleClearStorage = async () => {
-    if (!window.confirm('Are you sure you want to reset the demo?')) {
-      return;
-    }
-    resetDemoState();
-    try {
-      console.log('[BluPrint Web] Resetting storage via API...');
-      const response = await fetch('/api/storage/reset', { method: 'POST' });
-      const data = await response.json();
-
-      if (data.success) {
-        console.log('[BluPrint Web] ✅ Storage reset successful');
-      }
-    } catch (error) {
-      console.error('[BluPrint Web] ❌ Failed to reset storage:', error);
-    }
-  };
 
   const handleAddItem = (type: SceneObject['type']) => {
     const newId = `${type}-${Date.now()}`;
@@ -197,60 +170,15 @@ export default function DormRoomDemoPage() {
     // Check if bookshelf exists in scene
     const hasBookshelf = sceneObjects.some(obj => obj.type === 'bookshelf');
 
-    const delayMs = 3000 + Math.floor(Math.random() * 2001);
-    const streamInterval = 80 + Math.floor(Math.random() * 61);
-    const assistantId = `msg-${Date.now() + 1}`;
-
-    const scheduleTimeout = (callback: () => void, delay: number) => {
-      const timeoutId = window.setTimeout(callback, delay);
-      chatTimeoutsRef.current.push(timeoutId);
-      return timeoutId;
-    };
-
-    const enqueueMessage = (reply: string, onComplete?: () => void) => {
-      setIsChatBusy(true);
-      setMessages((prev) => [
-        ...prev,
-        userMessage,
-        {
-          id: assistantId,
-          role: 'assistant',
-          content: TYPING_INDICATOR_TOKEN,
-          timestamp: Date.now() + 1,
-        },
-      ]);
-
-      scheduleTimeout(() => {
-        const words = reply.split(/\s+/).filter(Boolean);
-        let index = 0;
-        const tick = () => {
-          index += 1;
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantId
-                ? { ...msg, content: words.slice(0, index).join(' ') }
-                : msg
-            )
-          );
-          if (index >= words.length) {
-            setIsChatBusy(false);
-            onComplete?.();
-            return;
-          }
-          const jitter = 80 + Math.floor(Math.random() * 61);
-          scheduleTimeout(tick, jitter);
-        };
-        scheduleTimeout(tick, streamInterval);
-      }, delayMs);
-    };
-
     // Scripted AI behavior (only if bookshelf exists)
     if (hasBookshelf) {
       const currentTurn = chatTurn + 1;
       setChatTurn(currentTurn);
 
       if (currentTurn === 1) {
-        enqueueMessage('Placing the bookshelf beside the painting.', () => {
+        sendMessageWithDelay(userMessage, 'Placing the bookshelf beside the painting.', setMessages);
+        // Schedule bookshelf movement after message completes
+        setTimeout(() => {
           setSceneObjects((prev) => {
             const bookshelfIndex = prev.findIndex(obj => obj.type === 'bookshelf');
             if (bookshelfIndex === -1) return prev;
@@ -262,12 +190,14 @@ export default function DormRoomDemoPage() {
             };
             return updated;
           });
-        });
+        }, 3000 + Math.floor(Math.random() * 2001) + 500);
         return;
       }
 
       if (currentTurn === 2) {
-        enqueueMessage('Moving it to the right of the bed, between the bed and radiator.', () => {
+        sendMessageWithDelay(userMessage, 'Moving it to the right of the bed, between the bed and radiator.', setMessages);
+        // Schedule bookshelf movement after message completes
+        setTimeout(() => {
           setSceneObjects((prev) => {
             const bookshelfIndex = prev.findIndex(obj => obj.type === 'bookshelf');
             if (bookshelfIndex === -1) return prev;
@@ -279,21 +209,25 @@ export default function DormRoomDemoPage() {
             };
             return updated;
           });
-        });
+        }, 3000 + Math.floor(Math.random() * 2001) + 500);
         return;
       }
 
-      enqueueMessage('The bookshelf is in position. You can fine-tune it if needed.');
+      sendMessageWithDelay(userMessage, 'The bookshelf is in position. You can fine-tune it if needed.', setMessages);
       return;
     }
 
     // No bookshelf - use default parser
     const result = parseCommand(content, sceneObjects);
-    enqueueMessage(result.message, () => {
-      if (result.success && result.updatedObjects) {
-        setSceneObjects(result.updatedObjects);
-      }
-    });
+    sendMessageWithDelay(userMessage, result.message, setMessages);
+
+    // Apply scene updates if command was successful
+    if (result.success && result.updatedObjects) {
+      const updatedObjects = result.updatedObjects;
+      setTimeout(() => {
+        setSceneObjects(updatedObjects);
+      }, 3000 + Math.floor(Math.random() * 2001) + 500);
+    }
   };
 
   const handleResetView = () => {
@@ -331,38 +265,19 @@ export default function DormRoomDemoPage() {
       />
 
       {/* Header */}
-      <header className="relative z-20 flex h-14 items-center justify-between gap-4 border-b border-white/10 bg-white/5 px-6 backdrop-blur-xl">
-        <div className="flex min-w-0 items-center gap-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-200 transition-colors hover:bg-white/10"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to home</span>
-          </Link>
-          <h1 className="truncate font-semibold text-white">Interactive Dorm Room</h1>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <TopToolbar
-            showGrid={showGrid}
-            showBlueprint={showBlueprint}
-            showShadows={showShadows}
-            autoRotate={autoRotate}
-            onToggleGrid={() => setShowGrid(!showGrid)}
-            onToggleBlueprint={() => setShowBlueprint(!showBlueprint)}
-            onToggleShadows={() => setShowShadows(!showShadows)}
-            onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
-            onResetView={handleResetView}
-          />
-          <button
-            onClick={handleClearStorage}
-            className="cursor-pointer rounded-full border border-red-400/20 bg-red-500/20 px-4 py-2 text-xs text-red-100 transition-colors hover:bg-red-500/30"
-          >
-            Reset Demo
-          </button>
-        </div>
-      </header>
+      <TopHeader
+        title="Interactive Dorm Room"
+        showGrid={showGrid}
+        showBlueprint={showBlueprint}
+        showShadows={showShadows}
+        autoRotate={autoRotate}
+        onToggleGrid={() => setShowGrid(!showGrid)}
+        onToggleBlueprint={() => setShowBlueprint(!showBlueprint)}
+        onToggleShadows={() => setShowShadows(!showShadows)}
+        onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+        onResetView={handleResetView}
+        onResetDemo={handleResetDemo}
+      />
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">

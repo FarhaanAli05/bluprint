@@ -105,7 +105,16 @@ export default function UploadPage() {
       // Get existing blueprints
       const stored = localStorage.getItem(BLUEPRINTS_STORAGE_KEY);
       const existing: Blueprint[] = stored ? JSON.parse(stored) : [];
-      
+
+      // Ensure unique slug
+      let uniqueSlug = slug || "my-room";
+      let counter = 2;
+      while (existing.some(bp => bp.slug === uniqueSlug)) {
+        uniqueSlug = `${slug || "my-room"}-${counter}`;
+        counter++;
+      }
+      newBlueprint.slug = uniqueSlug;
+
       // Add new blueprint at the beginning
       const updated = [newBlueprint, ...existing];
       localStorage.setItem(BLUEPRINTS_STORAGE_KEY, JSON.stringify(updated));
@@ -115,10 +124,22 @@ export default function UploadPage() {
   }, [photos, projectName, projectDescription]);
 
   const canCreate = photos.length >= MIN_PHOTOS && projectName.trim().length > 0;
-  const projectSlug = createSlug(projectName) || "my-room";
+  const [savedSlug, setSavedSlug] = useState<string>("");
+
+  // Update handleCreateBluprint to save the unique slug
+  useEffect(() => {
+    if (showLoading && savedSlug) {
+      // Will trigger redirect after loading screen
+    }
+  }, [showLoading, savedSlug]);
 
   if (showLoading) {
-    return <LoadingScreen onComplete={() => router.push(`/${projectSlug}`)} />;
+    // Get the actual saved slug from localStorage to ensure we navigate to the right place
+    const stored = localStorage.getItem(BLUEPRINTS_STORAGE_KEY);
+    const existing: Blueprint[] = stored ? JSON.parse(stored) : [];
+    const latestProject = existing[0]; // We just added it at the beginning
+    const finalSlug = latestProject?.slug || createSlug(projectName) || "my-room";
+    return <LoadingScreen onComplete={() => router.push(`/projects/${finalSlug}`)} />;
   }
 
   return (
@@ -202,7 +223,7 @@ export default function UploadPage() {
                     />
                     {projectName && (
                       <p className="mt-2 text-xs text-white/40">
-                        URL: /{projectSlug}
+                        URL: /projects/{createSlug(projectName) || "my-room"}
                       </p>
                     )}
                   </div>
