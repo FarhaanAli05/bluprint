@@ -892,12 +892,14 @@ function Scene({ sceneObjects, onSelect, showGrid, showBlueprint, showShadows, a
       <OrbitControls
         ref={controlsRef}
         enableDamping={true}
-        dampingFactor={0.05}
-        minDistance={8}
-        maxDistance={30}
+        dampingFactor={0.08}
+        minDistance={5}
+        maxDistance={25}
         maxPolarAngle={Math.PI / 2 - 0.05}
         minPolarAngle={0.1}
         target={[0, 2.5, 0]}
+        zoomSpeed={0.6}
+        rotateSpeed={0.5}
         makeDefault
       />
     </>
@@ -937,15 +939,20 @@ export default function EnhancedDormViewer({
   onResetView
 }: EnhancedDormViewerProps) {
   return (
-    <div className="relative h-full w-full min-h-[500px] bg-[#0a1128] rounded-xl overflow-hidden">
+    <div
+      className="relative h-full w-full min-h-[500px] bg-[#0a1128] rounded-xl overflow-hidden touch-none"
+      onWheel={(event) => {
+        event.preventDefault();
+      }}
+    >
       <Suspense fallback={<LoadingScreen />}>
         <Canvas
           shadows={showShadows}
           camera={{
             position: [12, 8, 12],
             fov: 65,
-            near: 0.2,
-            far: 50,
+            near: 0.5,
+            far: 60,
           }}
           gl={{ antialias: true }}
           onPointerMissed={() => onSelect(null)}

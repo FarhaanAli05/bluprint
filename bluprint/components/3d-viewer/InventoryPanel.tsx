@@ -31,7 +31,7 @@ export default function InventoryPanel({ onAddItem, showBookshelf = false }: Inv
                 {item.type === 'bookshelf' ? (
                   <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
                     <Image
-                      src="/billy-bookcase.jpg"
+                      src="/billy-bookcase.png"
                       alt="BILLY Bookcase"
                       fill
                       className="object-cover"

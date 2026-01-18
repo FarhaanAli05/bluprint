@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { initialSceneState, SceneObject, ChatMessage, parseCommand, ROOM } from "@/lib/dormRoomState";
 import InventoryPanel from "@/components/3d-viewer/InventoryPanel";
 import ChatbotPanel from "@/components/3d-viewer/ChatbotPanel";
-import SceneControlsPanel from "@/components/3d-viewer/SceneControlsPanel";
+import TopToolbar from "@/components/3d-viewer/TopToolbar";
 
 // Dynamic import to avoid SSR issues with Three.js
 const EnhancedDormViewer = dynamic(
@@ -25,6 +25,34 @@ const EnhancedDormViewer = dynamic(
   }
 );
 
+const BOOKSHELF_SCALE = 3;
+const BOOKSHELF_DIMENSIONS = {
+  width: 0.4 * BOOKSHELF_SCALE,
+  depth: 0.28 * BOOKSHELF_SCALE,
+};
+const BOOKSHELF_CLEARANCE = 0.03;
+const PAINTING_HALF_WIDTH = 0.7;
+const RIGHT_WALL_X =
+  ROOM.width / 2 - ROOM.wallThickness - BOOKSHELF_DIMENSIONS.depth / 2 - BOOKSHELF_CLEARANCE;
+const BACK_WALL_Z =
+  -ROOM.depth / 2 + ROOM.wallThickness + BOOKSHELF_DIMENSIONS.depth / 2 + BOOKSHELF_CLEARANCE;
+const BED_CENTER_X = -ROOM.width / 2 + 2;
+const BED_HALF_WIDTH = 3.25 / 2;
+const RADIATOR_CENTER_X = 1.5;
+const RADIATOR_HALF_WIDTH = 3.5 / 2;
+const BOOKSHELF_BED_X = (BED_CENTER_X + BED_HALF_WIDTH + RADIATOR_CENTER_X - RADIATOR_HALF_WIDTH) / 2;
+
+const BOOKSHELF_TRANSFORMS = {
+  besidePainting: {
+    position: [RIGHT_WALL_X, 0, 2 + PAINTING_HALF_WIDTH + BOOKSHELF_DIMENSIONS.width / 2 + BOOKSHELF_CLEARANCE] as [number, number, number],
+    rotation: -Math.PI / 2,
+  },
+  besideBed: {
+    position: [BOOKSHELF_BED_X, 0, BACK_WALL_Z] as [number, number, number],
+    rotation: 0,
+  },
+};
+
 export default function DormRoomDemoPage() {
   const [sceneObjects, setSceneObjects] = useState<SceneObject[]>(initialSceneState);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -32,7 +60,6 @@ export default function DormRoomDemoPage() {
   const [showGrid, setShowGrid] = useState(false);
   const [showBlueprint, setShowBlueprint] = useState(false);
   const [showShadows, setShowShadows] = useState(true);
-  const [cameraMode, setCameraMode] = useState<'orbit' | 'topDown' | 'firstPerson'>('orbit');
   const [inventoryUnlocked, setInventoryUnlocked] = useState(false);
   const [autoRotate, setAutoRotate] = useState(false);
   const [chatTurn, setChatTurn] = useState(0); // Track chat turn for scripted behavior
@@ -40,6 +67,10 @@ export default function DormRoomDemoPage() {
   // Poll API for storage status (reliable cross-tab sync via server)
   useEffect(() => {
     const checkStorageStatus = async () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return;
+      }
+
       try {
         const response = await fetch('/api/storage/status');
         const data = await response.json();
@@ -60,14 +91,26 @@ export default function DormRoomDemoPage() {
       }
     };
 
-    // Check immediately on mount
-    checkStorageStatus();
+    let interval: ReturnType<typeof setInterval> | null = null;
 
-    // Poll every 500ms for instant feedback
-    const interval = setInterval(checkStorageStatus, 500);
+    if (!inventoryUnlocked) {
+      checkStorageStatus();
+      interval = setInterval(checkStorageStatus, 1000);
+    }
+
+    const handleVisibility = () => {
+      if (!document.hidden && !inventoryUnlocked) {
+        checkStorageStatus();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      clearInterval(interval);
+      if (interval) {
+        clearInterval(interval);
+      }
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [inventoryUnlocked]);
 
@@ -129,15 +172,14 @@ export default function DormRoomDemoPage() {
       setChatTurn(currentTurn);
 
       if (currentTurn === 1) {
-        // Turn 1: Place bookshelf beside the painting (right wall, mid-room)
-        // Painting is at [ROOM.width / 2 - 0.08, 5, 2]
-        // Place bookshelf on right wall, beside painting, facing into room
         updatedObjects = [...sceneObjects];
         updatedObjects[bookshelfIndex] = {
           ...updatedObjects[bookshelfIndex],
-          position: [ROOM.width / 2 - 0.8, 0, 2] as [number, number, number],
-          rotation: -Math.PI / 2, // Face inward (left)
+          position: BOOKSHELF_TRANSFORMS.besidePainting.position,
+          rotation: BOOKSHELF_TRANSFORMS.besidePainting.rotation,
         };
+
+        console.log('[Turn 1] Bookshelf placed beside painting:', BOOKSHELF_TRANSFORMS.besidePainting);
 
         assistantMessage = {
           id: `msg-${Date.now() + 1}`,
@@ -146,15 +188,11 @@ export default function DormRoomDemoPage() {
           timestamp: Date.now() + 1,
         };
       } else if (currentTurn === 2) {
-        // Turn 2: Move bookshelf beside bed, between bed and radiator
-        // Bed is at [-ROOM.width / 2 + 2, 0, -ROOM.depth / 2 + 3.5]
-        // Radiator is at [1.5, r.height / 2 + 0.1, -ROOM.depth / 2 + r.depth / 2 + 0.3]
-        // Place to right of bed, facing bed
         updatedObjects = [...sceneObjects];
         updatedObjects[bookshelfIndex] = {
           ...updatedObjects[bookshelfIndex],
-          position: [-1, 0, -ROOM.depth / 2 + 3.5] as [number, number, number],
-          rotation: Math.PI / 2, // Face bed (left)
+          position: BOOKSHELF_TRANSFORMS.besideBed.position,
+          rotation: BOOKSHELF_TRANSFORMS.besideBed.rotation,
         };
 
         assistantMessage = {
@@ -226,6 +264,23 @@ export default function DormRoomDemoPage() {
         </div>
       </header>
 
+      <div className="sticky top-14 z-20 border-b border-white/10 bg-slate-900/70 px-4 py-2 backdrop-blur">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between">
+          <TopToolbar
+            showGrid={showGrid}
+            showBlueprint={showBlueprint}
+            showShadows={showShadows}
+            autoRotate={autoRotate}
+            onToggleGrid={() => setShowGrid(!showGrid)}
+            onToggleBlueprint={() => setShowBlueprint(!showBlueprint)}
+            onToggleShadows={() => setShowShadows(!showShadows)}
+            onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+            onResetView={handleResetView}
+          />
+          <div className="text-[11px] uppercase tracking-wide text-slate-400">View Controls</div>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar - Inventory (hidden until unlocked) */}
@@ -254,23 +309,6 @@ export default function DormRoomDemoPage() {
             onResetView={handleResetView}
           />
 
-          {/* Floating controls */}
-          <div className="absolute right-4 top-4">
-            <SceneControlsPanel
-              showGrid={showGrid}
-              showBlueprint={showBlueprint}
-              showShadows={showShadows}
-              cameraMode={cameraMode}
-              autoRotate={autoRotate}
-              onToggleGrid={() => setShowGrid(!showGrid)}
-              onToggleBlueprint={() => setShowBlueprint(!showBlueprint)}
-              onToggleShadows={() => setShowShadows(!showShadows)}
-              onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
-              onChangeCameraMode={setCameraMode}
-              onResetView={handleResetView}
-            />
-          </div>
-
           {/* Selected object info */}
           {selectedId && (
             <div className="absolute bottom-4 left-4">
@@ -287,7 +325,7 @@ export default function DormRoomDemoPage() {
       </div>
 
       {/* Right Sidebar - Chatbot (Fixed Position Overlay) */}
-      <div className="fixed right-4 top-20 bottom-4 w-80 border border-white/10 rounded-lg bg-slate-900/95 backdrop-blur flex flex-col overflow-hidden shadow-2xl">
+      <div className="fixed left-2 right-2 top-20 bottom-4 rounded-lg border border-white/10 bg-slate-900/95 backdrop-blur flex flex-col overflow-hidden shadow-2xl sm:left-auto sm:right-4 sm:w-80">
         <ChatbotPanel
           messages={messages}
           onSendMessage={handleSendMessage}
