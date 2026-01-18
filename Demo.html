@@ -82,7 +82,7 @@
         }
 
         .url-bar::before {
-            content: "🔒 ikea.com/us/en/p/hemnes-bed-frame-with-4-storage-boxes-white-luroy-s19248448";
+            content: "";
         }
 
         .extension-icon {
@@ -253,10 +253,10 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            filter: blur(2px);
+            filter: blur(1px);
             transform: scale(1.02);
-            z-index: -1; /* Behind all content - negative z-index ensures it stays behind */
-            pointer-events: none; /* Don't intercept mouse events */
+            z-index: 0;              /* background layer */
+            pointer-events: none;
         }
 
         /* Success state removes blueprint background */
@@ -442,42 +442,51 @@
 
         /* Preview State - 60% scale, matches extension exactly */
         .preview-state {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
             position: relative;
-            overflow: visible; /* Allow content with negative margin to be visible */
-            padding-top: 0; /* Start at top - no extra padding needed */
-            align-items: stretch; /* Top-aligned, no centering */
-            justify-content: flex-start; /* Start from top, not center */
+            height: 100%;
+            overflow: visible;
+
+            display: block; /* important */
         }
 
         /* Preview Card - Groups model + buttons as one unit */
         .preview-card {
             background: rgba(248, 249, 250, 0.95);
             backdrop-filter: blur(4px);
-            border-radius: 3.6px; /* 60% of 6px */
-            margin: 0 4.8px 0 4.8px; /* Left/right only, no top/bottom */
-            margin-top: -120px; /* Negative margin to move content up to top */
-            padding: 2px; /* Minimal padding to save space */
+            border-radius: 3.6px;
+            padding: 2px;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0.6px 1.8px rgba(0, 0, 0, 0.05); /* 60% scaling */
-            position: relative;
-            z-index: 10; /* Well above blueprint background (z-index: -1) */
+            box-shadow: 0 0.6px 1.8px rgba(0, 0, 0, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.5);
+
+            width: calc(100% - 9.6px);
+            max-width: 200px;
+
+            position: absolute;
+            left: 50%;
+            top: 50%;
+
+            /* Center vertically + horizontally, then nudge UP */
+            transform: translate(-50%, -50%) translateY(-95px);
+
+            width: calc(100% - 9.6px);
+            max-width: 200px;
+            z-index: 10;
+            padding-top: 6px;
         }
 
-        /* Model Viewer Wrapper - 60% scale, significantly reduced to fit everything */
+        /* Model Viewer Wrapper - 60% scale, square shape */
         .model-viewer-wrapper {
-            height: 75px; /* Much smaller to ensure everything fits */
+            width: 120px; /* Square width */
+            height: 120px; /* Square height - matches width */
             padding: 1px; /* Minimal padding */
             padding-top: 1px;
             padding-bottom: 1px;
             position: relative;
             flex-shrink: 0;
-            margin-top: 0; /* No top margin - starts immediately */
+            margin: 0 auto; /* Center the square model */
         }
 
         .model-viewer-container {
@@ -515,7 +524,7 @@
         .preview-actions {
             display: flex;
             gap: 2.4px; /* Reduced gap */
-            padding: 2px 2px 2px; /* Minimal padding to save vertical space */
+            padding: 2px 2px 4px; /* Minimal padding to save vertical space */
             flex-shrink: 0;
             position: relative;
             margin-top: 0; /* Directly under model card */
@@ -849,36 +858,8 @@
             transform: translate(-50%, -50%);
         }
 
-        /* Toast Notification */
-        .toast {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #333;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-size: 14px;
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 1500;
-        }
 
-        .toast.visible {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
 
-        .toast::before {
-            content: "Saved ";
-        }
-
-        .toast::after {
-            content: " ✓";
-            color: #28ca42;
-            font-weight: bold;
-        }
 
         /* Hover effects */
         .hover-effect {
@@ -958,8 +939,6 @@
                     </div>
                 </div>
 
-                <!-- Toast Notification -->
-                <div class="toast" id="toast"></div>
 
                 <!-- Extension Popup -->
                 <div class="extension-popup" id="popup">
@@ -1033,7 +1012,6 @@
         const addBtn = document.getElementById('addBtn');
         const keepShoppingBtn = document.getElementById('keepShoppingBtn');
         const viewStorageBtn = document.getElementById('viewStorageBtn');
-        const toast = document.getElementById('toast');
 
         const initialState = document.getElementById('initialState');
         const previewState = document.getElementById('previewState');
@@ -1146,7 +1124,6 @@
             popup.classList.remove('visible');
             showPage(initialState);
             setLoading(false); // Reset button
-            toast.classList.remove('visible');
             
             [extensionIcon, applyBtn, addBtn, keepShoppingBtn, viewStorageBtn].forEach(el => {
                 if (el) el.classList.remove('hovered');
@@ -1214,13 +1191,11 @@
             await hoverAt(keepShoppingBtn, 0, 500, () => {
                 // Popup closes
                 popup.classList.remove('visible');
-                toast.classList.add('visible');
             });
 
             // Toast visible briefly
             await new Promise(resolve => setTimeout(resolve, 800));
             if (!isAutomated) return;
-            toast.classList.remove('visible');
             
             // Move cursor away smoothly
             await animateCursor(850, 550, 600);
@@ -1290,11 +1265,9 @@
             isAutomated = false;
             // Match extension: handleKeepShopping - close popup
             popup.classList.remove('visible');
-            toast.classList.add('visible');
             
             // Reset after toast
             setTimeout(() => {
-                toast.classList.remove('visible');
                 currentState = 'initial';
                 showState(initialState);
                 popup.classList.add('visible'); // Reopen for next interaction
