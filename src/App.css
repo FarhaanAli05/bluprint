@@ -53,21 +53,35 @@
   justify-content: center;
   height: 100%;
   padding: 20px;
-  padding-top: 90px; /* Space for larger logo */
+  padding-top: 130px; /* Space for larger logo */
   position: relative;
 }
 
-.box h2 {
+/* Logo Header - Centered container for logo and name */
+.logo-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
   position: absolute;
-  top: 40px;
+  top: 65px;
   left: 0;
   right: 0;
+  z-index: 1;
+}
+
+.logo-image {
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
+}
+
+.box h2 {
   margin: 0;
   color: #ffffff;
-  font-size: 32px;
+  font-size: 56px;
   font-weight: 700;
   text-align: center;
-  z-index: 1;
   letter-spacing: -0.5px;
   line-height: 1.2;
 }
@@ -87,7 +101,7 @@
 /* Brief descriptive text above button */
 .action-description {
   margin: 0 0 12px 0;
-  color: #666;
+  color: #333;
   font-size: 11px;
   font-weight: 400;
   line-height: 1.4;
@@ -260,75 +274,117 @@
   background: transparent;
 }
 
-/* Product Info - Tertiary, fully below the fold, scroll-revealed */
-.product-info {
-  padding: 12px 10px 14px;
-  padding-bottom: 16px; /* Extra padding at bottom for scrollable content */
-  text-align: left;
+/* Product Info Card - Modern Chrome extension style */
+.product-info-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  margin: 0 8px 8px;
+  padding: 14px 16px 16px;
   position: relative;
   min-height: fit-content;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(3px);
-  border-radius: 6px;
-  margin: 0 8px 8px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  text-align: left;
 }
 
-/* Subtle divider hint to show scrollable content */
-.product-info::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 10px;
-  right: 10px;
-  height: 1px;
-  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.08), transparent);
+/* Product Info Header */
+.product-info-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-/* Product List - Definition list with 2-column layout */
-.product-list {
+.product-header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-name {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #202124;
+  line-height: 1.4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.product-subtitle {
   margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: 85px 1fr;
-  gap: 10px 12px;
-  align-items: start;
+  font-size: 11px;
+  font-weight: 400;
+  color: #80868b;
+  line-height: 1.3;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* Label column - Fixed width, right-aligned */
-.product-label {
-  color: #666;
+.product-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #5f6368;
+  background: rgba(95, 99, 104, 0.1);
+  border-radius: 12px;
+  line-height: 1.4;
+  flex-shrink: 0;
+  margin-left: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Product Specs Grid */
+.product-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.spec-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.spec-label {
   font-size: 11px;
   font-weight: 500;
-  text-align: right;
-  padding-right: 8px;
-  margin: 0;
-  line-height: 1.6;
-  grid-column: 1;
+  color: #80868b;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* Value column - Flexible width, wraps only in value column */
-.product-value {
-  color: #333;
+.spec-value {
   font-size: 11px;
   font-weight: 400;
-  margin: 0;
-  padding: 0;
-  line-height: 1.6;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  grid-column: 2;
-  min-width: 0; /* Allows wrapping */
-  max-width: 100%; /* Ensure values don't overflow */
-  overflow: visible; /* Allow scrolling if needed */
+  color: #202124;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-.product-value.product-dimensions {
-  color: #999;
+.spec-value-dimensions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spec-value-primary {
+  font-size: 11px;
+  font-weight: 400;
+  color: #202124;
+  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.spec-value-secondary {
   font-size: 10px;
   font-weight: 400;
-  letter-spacing: 0.15px;
-  opacity: 0.85;
+  color: #80868b;
+  line-height: 1.4;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 

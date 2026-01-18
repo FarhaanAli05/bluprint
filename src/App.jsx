@@ -255,32 +255,50 @@ function App() {
 
             {/* Scrollable Details Area - Below the fold */}
             <div className="preview-scroll-container">
-              <div className="product-info">
-                <dl className="product-list">
-                  {cleanProductName(scrapedData.name) && (
-                    <>
-                      <dt className="product-label">name:</dt>
-                      <dd className="product-value">{cleanProductName(scrapedData.name)}</dd>
-                      <dt className="product-label">color:</dt>
-                      <dd className="product-value">white</dd>
-                      <dt className="product-label">dimensions:</dt>
-                      <dd className="product-value">40x28x202 cm (15 3/4x11x79 1/2 ")</dd>
-                    </>
-                  )}
+              <div className="product-info-card">
+                {/* Header Row */}
+                <div className="product-info-header">
+                  <div className="product-header-content">
+                    <h3 className="product-name">{cleanProductName(scrapedData.name) || 'Product'}</h3>
+                    <p className="product-subtitle">Saved item details</p>
+                  </div>
+                  <span className="product-badge">IKEA</span>
+                </div>
+
+                {/* Specs Grid */}
+                <div className="product-specs">
+                  <div className="spec-row">
+                    <span className="spec-label">Color</span>
+                    <span className="spec-value">white</span>
+                  </div>
+                  <div className="spec-row">
+                    <span className="spec-label">Materials</span>
+                    <span className="spec-value">Particleboard, Fiberboard, Paper foil</span>
+                  </div>
+                  <div className="spec-row">
+                    <span className="spec-label">Dimensions</span>
+                    <div className="spec-value-dimensions">
+                      <span className="spec-value-primary">40×28×202 cm</span>
+                      <span className="spec-value-secondary">15 3/4×11×79 1/2"</span>
+                    </div>
+                  </div>
                   {formatPrice(scrapedData.price) && (
-                    <>
-                      <dt className="product-label">price:</dt>
-                      <dd className="product-value">{formatPrice(scrapedData.price)}</dd>
-                    </>
+                    <div className="spec-row">
+                      <span className="spec-label">Price</span>
+                      <span className="spec-value">{formatPrice(scrapedData.price)}</span>
+                    </div>
                   )}
-                </dl>
+                </div>
               </div>
             </div>
           </div>
         ) : (
           /* Initial/Loading State - Blueprint background, centered content */
           <div className="initial-state">
-            <h2>bluprint</h2>
+            <div className="logo-header">
+              <img src="/icon.png" alt="bluprint logo" className="logo-image" />
+              <h2>bluprint</h2>
+            </div>
             <div className="action-card">
               <p className="action-description">
                 Preview this item at real scale in your room
