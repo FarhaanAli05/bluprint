@@ -108,26 +108,43 @@ function Baseboards() {
   );
 }
 
-function Ceiling() {
+function Ceiling({ opacity = 1 }: { opacity?: number }) {
   return (
     <group>
       {/* Main ceiling */}
       <mesh position={[0, DIMENSIONS.height, 0]} receiveShadow>
         <boxGeometry args={[DIMENSIONS.width, 0.15, DIMENSIONS.depth]} />
-        <meshStandardMaterial color={CEILING_COLOR} roughness={0.95} />
+        <meshStandardMaterial
+          color={CEILING_COLOR}
+          roughness={0.95}
+          transparent
+          opacity={opacity}
+          side={THREE.DoubleSide}
+          depthWrite={opacity > 0.5}
+        />
       </mesh>
 
       {/* Ceiling panel lines - create drop tile effect */}
       {Array.from({ length: 7 }).map((_, i) => (
         <mesh key={`tile-x-${i}`} position={[0, DIMENSIONS.height - 0.08, -DIMENSIONS.depth / 2 + i * 2]}>
           <boxGeometry args={[DIMENSIONS.width, 0.015, 0.015]} />
-          <meshStandardMaterial color="#E8E8E8" />
+          <meshStandardMaterial
+            color="#E8E8E8"
+            transparent
+            opacity={opacity}
+            depthWrite={opacity > 0.5}
+          />
         </mesh>
       ))}
       {Array.from({ length: 6 }).map((_, i) => (
         <mesh key={`tile-z-${i}`} position={[-DIMENSIONS.width / 2 + i * 2, DIMENSIONS.height - 0.08, 0]}>
           <boxGeometry args={[0.015, 0.015, DIMENSIONS.depth]} />
-          <meshStandardMaterial color="#E8E8E8" />
+          <meshStandardMaterial
+            color="#E8E8E8"
+            transparent
+            opacity={opacity}
+            depthWrite={opacity > 0.5}
+          />
         </mesh>
       ))}
     </group>
@@ -171,7 +188,7 @@ function CeilingLight() {
 
 function AdaptiveWalls() {
   const { camera } = useThree();
-  const [opacities, setOpacities] = useState({ front: 1, back: 1, left: 1, right: 1 });
+  const [opacities, setOpacities] = useState({ front: 1, back: 1, left: 1, right: 1, ceiling: 1 });
   const [debugWall, setDebugWall] = useState<string>('none');
 
   const wallRefs = {
@@ -189,13 +206,22 @@ function AdaptiveWalls() {
 
     // Vector from room center to camera
     const dx = cameraPos.x - roomCenter.x;
+    const dy = cameraPos.y - roomCenter.y;
     const dz = cameraPos.z - roomCenter.z;
 
-    // Determine which wall is between camera and room interior
-    let targetOpacities = { front: 1, back: 1, left: 1, right: 1 };
+    // Determine which surface is between camera and room interior
+    let targetOpacities = { front: 1, back: 1, left: 1, right: 1, ceiling: 1 };
     let fadingWall = 'none';
 
-    if (Math.abs(dx) > Math.abs(dz)) {
+    // Check if camera is above (dominant +Y direction)
+    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > Math.abs(dz)) {
+      if (dy > 0) {
+        // Camera above room, fade ceiling
+        targetOpacities.ceiling = 0.12;
+        fadingWall = '+Y (ceiling)';
+      }
+      // If dy < 0 (below), don't fade floor - keep all opaque
+    } else if (Math.abs(dx) > Math.abs(dz)) {
       // Camera is more to the left or right
       if (dx > 0) {
         // Camera on +X side, fade right wall
@@ -225,6 +251,7 @@ function AdaptiveWalls() {
       back: THREE.MathUtils.lerp(opacities.back, targetOpacities.back, 0.08),
       left: THREE.MathUtils.lerp(opacities.left, targetOpacities.left, 0.08),
       right: THREE.MathUtils.lerp(opacities.right, targetOpacities.right, 0.08),
+      ceiling: THREE.MathUtils.lerp(opacities.ceiling, targetOpacities.ceiling, 0.08),
     };
 
     setOpacities(newOpacities);
@@ -259,37 +286,42 @@ function AdaptiveWalls() {
       transparent
       opacity={opacity}
       roughness={0.9}
-      side={THREE.FrontSide}
+      side={THREE.DoubleSide}
       depthWrite={opacity > 0.5}
     />
   );
 
   return (
-    <group>
-      {/* Back wall (-Z, with window) */}
-      <mesh ref={wallRefs.back} position={[0, DIMENSIONS.height / 2, -DIMENSIONS.depth / 2]} receiveShadow>
-        <boxGeometry args={[DIMENSIONS.width, DIMENSIONS.height, DIMENSIONS.wallThickness]} />
-        {wallMaterial(opacities.back)}
-      </mesh>
+    <>
+      <group>
+        {/* Back wall (-Z, with window) */}
+        <mesh ref={wallRefs.back} position={[0, DIMENSIONS.height / 2, -DIMENSIONS.depth / 2]} receiveShadow>
+          <boxGeometry args={[DIMENSIONS.width, DIMENSIONS.height, DIMENSIONS.wallThickness]} />
+          {wallMaterial(opacities.back)}
+        </mesh>
 
-      {/* Front wall (+Z) */}
-      <mesh ref={wallRefs.front} position={[0, DIMENSIONS.height / 2, DIMENSIONS.depth / 2]} receiveShadow>
-        <boxGeometry args={[DIMENSIONS.width, DIMENSIONS.height, DIMENSIONS.wallThickness]} />
-        {wallMaterial(opacities.front)}
-      </mesh>
+        {/* Front wall (+Z) */}
+        <mesh ref={wallRefs.front} position={[0, DIMENSIONS.height / 2, DIMENSIONS.depth / 2]} receiveShadow>
+          <boxGeometry args={[DIMENSIONS.width, DIMENSIONS.height, DIMENSIONS.wallThickness]} />
+          {wallMaterial(opacities.front)}
+        </mesh>
 
-      {/* Left wall (-X) */}
-      <mesh ref={wallRefs.left} position={[-DIMENSIONS.width / 2, DIMENSIONS.height / 2, 0]} receiveShadow>
-        <boxGeometry args={[DIMENSIONS.wallThickness, DIMENSIONS.height, DIMENSIONS.depth]} />
-        {wallMaterial(opacities.left)}
-      </mesh>
+        {/* Left wall (-X) */}
+        <mesh ref={wallRefs.left} position={[-DIMENSIONS.width / 2, DIMENSIONS.height / 2, 0]} receiveShadow>
+          <boxGeometry args={[DIMENSIONS.wallThickness, DIMENSIONS.height, DIMENSIONS.depth]} />
+          {wallMaterial(opacities.left)}
+        </mesh>
 
-      {/* Right wall (+X, long blank wall) */}
-      <mesh ref={wallRefs.right} position={[DIMENSIONS.width / 2, DIMENSIONS.height / 2, 0]} receiveShadow>
-        <boxGeometry args={[DIMENSIONS.wallThickness, DIMENSIONS.height, DIMENSIONS.depth]} />
-        {wallMaterial(opacities.right)}
-      </mesh>
-    </group>
+        {/* Right wall (+X, long blank wall) */}
+        <mesh ref={wallRefs.right} position={[DIMENSIONS.width / 2, DIMENSIONS.height / 2, 0]} receiveShadow>
+          <boxGeometry args={[DIMENSIONS.wallThickness, DIMENSIONS.height, DIMENSIONS.depth]} />
+          {wallMaterial(opacities.right)}
+        </mesh>
+      </group>
+
+      {/* Ceiling with adaptive opacity */}
+      <Ceiling opacity={opacities.ceiling} />
+    </>
   );
 }
 
@@ -567,22 +599,33 @@ function DeskWithHutch({ position, rotation }: { position: [number, number, numb
           <sphereGeometry args={[0.12, 16, 16]} />
           <meshStandardMaterial color="#D4AF37" metalness={0.7} roughness={0.2} />
         </mesh>
+      </group>
 
-        {/* Small table lamp on desk surface */}
-        <group position={[-1.3, -d.height - 0.05, 0.4]}>
-          <mesh position={[0, 0.15, 0]} castShadow>
-            <cylinderGeometry args={[0.12, 0.15, 0.25, 16]} />
-            <meshStandardMaterial color="#FFFFFF" roughness={0.4} />
-          </mesh>
-          <mesh position={[0, 0.4, 0]} castShadow>
-            <cylinderGeometry args={[0.02, 0.02, 0.4, 8]} />
-            <meshStandardMaterial color="#C0C0C0" metalness={0.8} roughness={0.2} />
-          </mesh>
-          <mesh position={[0, 0.65, 0]} castShadow>
-            <coneGeometry args={[0.22, 0.3, 16, 1, true]} />
-            <meshStandardMaterial color="#FFF8DC" side={THREE.DoubleSide} roughness={0.7} />
-          </mesh>
-        </group>
+      {/* Desk lamp on desk surface (moved outside hutch group) */}
+      <group position={[-1.2, d.height + 0.06, d.depth / 2 - 0.35]}>
+        {/* Lamp base */}
+        <mesh position={[0, 0.08, 0]} castShadow>
+          <cylinderGeometry args={[0.12, 0.15, 0.16, 16]} />
+          <meshStandardMaterial color="#2C2C2C" roughness={0.5} />
+        </mesh>
+        {/* Lamp stem */}
+        <mesh position={[0, 0.28, 0]} castShadow>
+          <cylinderGeometry args={[0.018, 0.018, 0.35, 8]} />
+          <meshStandardMaterial color="#C0C0C0" metalness={0.8} roughness={0.2} />
+        </mesh>
+        {/* Lamp shade */}
+        <mesh position={[0, 0.52, 0]} castShadow>
+          <coneGeometry args={[0.2, 0.25, 16, 1, true]} />
+          <meshStandardMaterial color="#E8E8E8" side={THREE.DoubleSide} roughness={0.6} />
+        </mesh>
+        {/* Subtle warm light from lamp */}
+        <pointLight
+          position={[0, 0.45, 0]}
+          intensity={0.3}
+          distance={2.5}
+          decay={2}
+          color="#FFF4E0"
+        />
       </group>
     </group>
   );
@@ -752,7 +795,6 @@ function Scene({ sceneObjects, onSelect }: SceneProps) {
       <Floor />
       <Baseboards />
       <AdaptiveWalls />
-      <Ceiling />
       <CeilingLight />
 
       {/* Window and radiator */}
