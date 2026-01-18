@@ -78,5 +78,44 @@ export function scrapeIKEA() {
   ]);
   data.category = getTextContent(breadcrumbEl);
 
+  // Color/texture options
+  const colorOptions = [];
+  
+  // Try to find color variant buttons/swatches
+  const colorButtons = querySelectorAllFallback([
+    '.pip-product-compact__media img[alt*="color"]',
+    '.pip-product-compact__media img[alt*="variant"]',
+    '[data-testid*="color"] button',
+    '[data-testid*="variant"] button',
+    '.pip-variant-selector__button',
+    '.pip-color-selector button'
+  ]);
+  
+  if (colorButtons.length > 0) {
+    colorButtons.forEach(btn => {
+      const alt = getAttribute(btn, 'alt') || getAttribute(btn.querySelector('img'), 'alt');
+      const ariaLabel = getAttribute(btn, 'aria-label');
+      const text = getTextContent(btn);
+      const colorName = alt || ariaLabel || text;
+      if (colorName && !colorOptions.includes(colorName)) {
+        colorOptions.push(colorName);
+      }
+    });
+  }
+  
+  // Fallback: Extract from product name or description if no variants found
+  if (colorOptions.length === 0 && data.name) {
+    const colorMatch = data.name.match(/\b(white|black|brown|gray|grey|red|blue|green|yellow|orange|pink|purple|beige|tan|ivory|cream|oak|pine|birch|walnut|cherry|mahogany|ebony)\b/gi);
+    if (colorMatch) {
+      colorOptions.push(...colorMatch.map(c => c.toLowerCase()));
+    }
+  }
+  
+  // Set current color if available
+  if (colorOptions.length > 0) {
+    data.color = colorOptions[0]; // Current selected color
+    data.colorOptions = colorOptions; // All available options
+  }
+
   return data;
 }

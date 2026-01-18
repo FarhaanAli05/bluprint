@@ -1,6 +1,6 @@
 .app-container {
-  width: 400px;
-  min-height: 500px;
+  width: 270px;
+  height: 324px; /* 20% increase from 270px */
   padding: 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
@@ -10,46 +10,145 @@
 
 .box {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 0;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
   text-align: center;
   width: 100%;
-  min-height: 500px;
+  height: 324px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+}
+
+/* Blueprint background for initial state */
+.box.blueprint-bg {
+  background: #F5F7FA;
+  background-image: 
+    /* Grid lines */
+    linear-gradient(rgba(74, 144, 226, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 144, 226, 0.08) 1px, transparent 1px),
+    /* Subtle noise texture */
+    radial-gradient(circle at 20% 50%, rgba(74, 144, 226, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(74, 144, 226, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(74, 144, 226, 0.02) 0%, transparent 50%);
+  background-size: 
+    12px 12px,
+    12px 12px,
+    100% 100%,
+    100% 100%,
+    100% 100%;
+  background-position: 0 0, 0 0, 0 0, 100% 100%, 50% 50%;
+}
+
+/* Initial State Styles - Centered content */
+.initial-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+  padding-top: 90px; /* Space for larger logo */
+  position: relative;
 }
 
 .box h2 {
-  margin: 0 0 20px 0;
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  margin: 0;
   color: #333;
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  z-index: 1;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
 }
 
-.create-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  font-size: 16px;
-  font-weight: 600;
+/* Apply Card - Centered, grouped phrase + button */
+.action-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
   border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(74, 144, 226, 0.1);
+  flex-shrink: 0;
+  max-width: 220px;
   width: 100%;
 }
 
+/* Brief descriptive text above button */
+.action-description {
+  margin: 0 0 12px 0;
+  color: #666;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.action-card .create-button {
+  width: 100%;
+  margin: 0;
+}
+
+.action-card .error-message {
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-size: 10px;
+  padding: 6px 8px;
+  background: rgba(211, 47, 47, 0.1);
+  border-radius: 4px;
+  border: 1px solid rgba(211, 47, 47, 0.2);
+}
+
+.create-button {
+  /* Muted blueprint blue base */
+  background: #4A90E2;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(74, 144, 226, 0.3);
+  width: 100%;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle grid pattern overlay for blueprint feel */
+.create-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
 .create-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  background: #5B9FE8;
+  box-shadow: 0 2px 6px rgba(74, 144, 226, 0.4);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .create-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+  background: #3A80D2;
+  box-shadow: 0 1px 2px rgba(74, 144, 226, 0.3);
 }
 
 .create-button:disabled {
@@ -58,28 +157,87 @@
 }
 
 .error-message {
-  margin-top: 15px;
+  margin-top: 11px;
   color: #d32f2f;
-  font-size: 12px;
+  font-size: 9px;
   text-align: center;
 }
 
-/* Preview State Styles */
+/* Preview State Styles - Compact, scroll-revealed, space-efficient */
 .preview-state {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 480px;
+  position: relative;
+}
+
+/* Preview Card - Groups model + buttons as one unit (fixed, doesn't scroll) */
+.preview-card {
+  background: rgba(248, 249, 250, 0.95);
+  backdrop-filter: blur(4px);
+  border-radius: 6px;
+  margin: 8px;
+  padding: 6px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Scrollable Details Container */
+.preview-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  max-height: 110px; /* Constrained height - forces scrolling for content */
+  /* Custom scrollbar styling - visible when content overflows */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.05);
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+  padding-right: 2px; /* Space for scrollbar */
+}
+
+.preview-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.preview-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.preview-scroll-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.preview-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Model Viewer Wrapper - Compact, just enough for clear interaction */
+.model-viewer-wrapper {
+  height: 160px; /* Slightly larger for breathing room */
+  padding: 4px;
+  padding-bottom: 2px;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .model-viewer-container {
-  flex: 1;
-  min-height: 300px;
-  margin-bottom: 16px;
+  width: 100%;
+  height: 100%;
   position: relative;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: #ffffff;
+  border-radius: 5px;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .model-viewer {
@@ -88,78 +246,144 @@
   position: relative;
 }
 
-/* Product Info - Subtle and Minimal */
-.product-info {
-  padding: 0 8px 16px;
-  text-align: left;
-  border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 16px;
-}
-
-.product-name {
-  margin: 0 0 8px 0;
-  color: #333;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.product-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.product-price {
-  color: #333;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.product-dimensions {
-  color: #666;
-  font-size: 12px;
-  font-weight: 400;
-}
-
-/* Action Buttons */
+/* Action Bar - Tightly anchored to model, no gap */
 .preview-actions {
   display: flex;
-  gap: 12px;
-  margin-top: auto;
-  padding-top: 16px;
+  gap: 6px;
+  padding: 6px 4px 4px;
+  flex-shrink: 0;
+  position: relative;
+  margin-top: 0;
+  background: transparent;
 }
+
+/* Product Info - Tertiary, fully below the fold, scroll-revealed */
+.product-info {
+  padding: 12px 10px 14px;
+  padding-bottom: 16px; /* Extra padding at bottom for scrollable content */
+  text-align: left;
+  position: relative;
+  min-height: fit-content;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(3px);
+  border-radius: 6px;
+  margin: 0 8px 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Subtle divider hint to show scrollable content */
+.product-info::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.08), transparent);
+}
+
+/* Product List - Definition list with 2-column layout */
+.product-list {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 85px 1fr;
+  gap: 10px 12px;
+  align-items: start;
+}
+
+/* Label column - Fixed width, right-aligned */
+.product-label {
+  color: #666;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: right;
+  padding-right: 8px;
+  margin: 0;
+  line-height: 1.6;
+  grid-column: 1;
+}
+
+/* Value column - Flexible width, wraps only in value column */
+.product-value {
+  color: #333;
+  font-size: 11px;
+  font-weight: 400;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  grid-column: 2;
+  min-width: 0; /* Allows wrapping */
+  max-width: 100%; /* Ensure values don't overflow */
+  overflow: visible; /* Allow scrolling if needed */
+}
+
+.product-value.product-dimensions {
+  color: #999;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.15px;
+  opacity: 0.85;
+}
+
 
 .action-button {
   flex: 1;
-  padding: 12px 20px;
-  font-size: 14px;
+  padding: 8px 12px;
+  font-size: 11px;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
+  min-height: 32px; /* Ensures tappable size while compact */
+  margin: 0;
 }
 
 .action-button.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Muted blueprint blue - matches create-button */
+  background: #4A90E2;
   color: white;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 3px rgba(74, 144, 226, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle grid pattern overlay for blueprint feel */
+.action-button.primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 .action-button.primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: #5B9FE8;
+  box-shadow: 0 2px 6px rgba(74, 144, 226, 0.4);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .action-button.primary:active {
-  transform: translateY(0);
+  background: #3A80D2;
+  box-shadow: 0 1px 2px rgba(74, 144, 226, 0.3);
 }
 
 .action-button.secondary {
   background: #f5f5f5;
   color: #666;
   border: 1px solid #e0e0e0;
+  font-size: 10px;
 }
 
 .action-button.secondary:hover {
@@ -177,8 +401,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
-  padding: 40px 20px;
+  min-height: 255px;
+  padding: 21px 12px;
   animation: fadeIn 0.3s ease;
 }
 
@@ -194,8 +418,13 @@
 }
 
 .success-icon {
-  margin-bottom: 24px;
+  margin-bottom: 15px;
   animation: scaleIn 0.4s ease 0.1s both;
+}
+
+.success-icon svg {
+  width: 48px;
+  height: 48px;
 }
 
 @keyframes scaleIn {
@@ -208,17 +437,17 @@
 }
 
 .success-title {
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   color: #333;
-  font-size: 28px;
+  font-size: 18px;
   font-weight: 700;
   text-align: center;
 }
 
 .success-subtext {
-  margin: 0 0 32px 0;
+  margin: 0 0 21px 0;
   color: #666;
-  font-size: 14px;
+  font-size: 10px;
   text-align: center;
   line-height: 1.5;
 }
@@ -226,20 +455,21 @@
 .success-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
-  max-width: 300px;
+  max-width: 210px;
 }
 
 .success-button {
-  padding: 14px 24px;
-  font-size: 14px;
+  padding: 8px 15px;
+  font-size: 10px;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
   width: 100%;
+  min-height: 30px; /* 75% of 40px - ensures tappable size */
 }
 
 .success-button.primary {

@@ -151,10 +151,56 @@ export function scrapeGeneric() {
     }
   }
 
-  // Color
-  const colorEl = querySelectorFallback(COMMON_SELECTORS.color);
-  if (colorEl) {
-    data.color = getTextContent(colorEl);
+  // Color/texture options
+  const colorOptions = [];
+  
+  // Try to find color variant buttons/swatches
+  const colorButtons = querySelectorAllFallback([
+    '[class*="color"] button',
+    '[class*="variant"] button',
+    '[class*="swatch"]',
+    '[aria-label*="color" i]',
+    '[aria-label*="variant" i]',
+    '[title*="color" i]',
+    '[title*="variant" i]',
+    ...COMMON_SELECTORS.color
+  ]);
+  
+  if (colorButtons.length > 0) {
+    colorButtons.forEach(btn => {
+      const ariaLabel = getAttribute(btn, 'aria-label');
+      const title = getAttribute(btn, 'title');
+      const text = getTextContent(btn);
+      const alt = getAttribute(btn.querySelector('img'), 'alt');
+      const colorName = ariaLabel || title || alt || text;
+      if (colorName && colorName.trim() && !colorOptions.includes(colorName.trim())) {
+        colorOptions.push(colorName.trim());
+      }
+    });
+  }
+  
+  // Fallback: Extract from product name or description
+  if (colorOptions.length === 0 && data.name) {
+    const colorMatch = data.name.match(/\b(white|black|brown|gray|grey|red|blue|green|yellow|orange|pink|purple|beige|tan|ivory|cream|oak|pine|birch|walnut|cherry|mahogany|ebony)\b/gi);
+    if (colorMatch) {
+      colorOptions.push(...colorMatch.map(c => c.toLowerCase()));
+    }
+  }
+  
+  // Set current color if available
+  if (colorOptions.length > 0) {
+    data.color = colorOptions[0]; // Current selected color
+    data.colorOptions = colorOptions; // All available options
+  } else {
+    // Fallback to single color selector
+    const colorEl = querySelectorFallback(COMMON_SELECTORS.color);
+    if (colorEl) {
+      const colorText = getTextContent(colorEl);
+      if (colorText) {
+        data.color = colorText;
+        data.colorOptions = [colorText];
+      }
+    }
   }
 
   // Material

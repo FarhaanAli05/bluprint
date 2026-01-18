@@ -121,6 +121,19 @@ function cleanData(data) {
     }
   });
 
+  // Clean colorOptions array if present
+  if (cleaned.colorOptions && Array.isArray(cleaned.colorOptions)) {
+    cleaned.colorOptions = cleaned.colorOptions
+      .map(opt => String(opt).trim())
+      .filter(opt => opt.length > 0);
+    // Remove duplicates
+    cleaned.colorOptions = [...new Set(cleaned.colorOptions)];
+    // If no valid color options, remove the field
+    if (cleaned.colorOptions.length === 0) {
+      delete cleaned.colorOptions;
+    }
+  }
+
   // Validate dimensions
   if (cleaned.dimensions && !validateDimensions(cleaned.dimensions)) {
     cleaned.dimensions = null;
@@ -217,6 +230,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   // #region agent log
   (function(){const log={location:'content.js:212',message:'Message received',data:{action:request.action,url:window.location.href},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H4'};console.log('[DEBUG]',log);fetch('http://127.0.0.1:7242/ingest/611b0b03-6cca-4656-a403-31a26cc1dd66',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(log)}).catch(e=>console.warn('[DEBUG] Log send failed:',e));})();
   // #endregion
+  
+  // Handle ping requests (to check if content script is loaded)
+  if (request.action === 'ping') {
+    sendResponse({ success: true, loaded: true });
+    return true;
+  }
+  
   if (request.action === 'scrapeFurniture') {
     // #region agent log
     (function(){const log={location:'content.js:214',message:'Starting scrape',data:{url:window.location.href},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H4'};console.log('[DEBUG]',log);fetch('http://127.0.0.1:7242/ingest/611b0b03-6cca-4656-a403-31a26cc1dd66',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(log)}).catch(e=>console.warn('[DEBUG] Log send failed:',e));})();
