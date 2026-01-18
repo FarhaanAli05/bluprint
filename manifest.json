@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "3D Model Room Importer",
+  "version": "1.0.0",
+  "description": "Create and import 3D models to your room",
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "3D Model Importer"
+  },
+  "permissions": [],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
