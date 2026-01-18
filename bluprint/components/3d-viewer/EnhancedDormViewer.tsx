@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, Suspense, useEffect } from "react";
+import { useRef, useState, Suspense, useEffect, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -117,6 +117,25 @@ function Ceiling({ opacity = 1 }: { opacity?: number }) {
         <meshStandardMaterial
           color={WALL_COLOR}
           roughness={0.9}
+          transparent
+          opacity={opacity}
+          side={THREE.FrontSide}
+          depthWrite={opacity > 0.5}
+        />
+      </mesh>
+
+      {/* Inner ceiling - ensure cream interior */}
+      <mesh
+        position={[0, DIMENSIONS.height - 0.08, 0]}
+        rotation={[Math.PI / 2, 0, 0]}
+        renderOrder={12}
+      >
+        <planeGeometry args={[DIMENSIONS.width, DIMENSIONS.depth]} />
+        <meshStandardMaterial
+          color={WALL_COLOR}
+          roughness={0.9}
+          emissive={WALL_COLOR}
+          emissiveIntensity={0.1}
           transparent
           opacity={opacity}
           side={THREE.DoubleSide}
@@ -777,13 +796,15 @@ function BlueprintGrid({ size = 50, divisions = 50 }: { size?: number; divisions
 function Scene({ sceneObjects, onSelect, showGrid, showBlueprint, showShadows, autoRotate, onResetView }: SceneProps) {
   const controlsRef = useRef<any>(null);
   const { camera } = useThree();
+  const initialCameraPos = useRef(new THREE.Vector3(12, 8, 12));
+  const initialTarget = useRef(new THREE.Vector3(0, 2.5, 0));
 
   // Reset view handler
   const performReset = () => {
     if (controlsRef.current && camera) {
-      camera.position.set(12, 8, 12);
+      camera.position.copy(initialCameraPos.current);
       camera.updateProjectionMatrix();
-      controlsRef.current.target.set(0, 2.5, 0);
+      controlsRef.current.target.copy(initialTarget.current);
       controlsRef.current.update();
     }
   };
@@ -893,13 +914,14 @@ function Scene({ sceneObjects, onSelect, showGrid, showBlueprint, showShadows, a
         ref={controlsRef}
         enableDamping={true}
         dampingFactor={0.08}
-        minDistance={5}
-        maxDistance={25}
-        maxPolarAngle={Math.PI / 2 - 0.05}
-        minPolarAngle={0.1}
+        minDistance={6}
+        maxDistance={30}
+        maxPolarAngle={1.45}
+        minPolarAngle={0.25}
         target={[0, 2.5, 0]}
-        zoomSpeed={0.6}
-        rotateSpeed={0.5}
+        zoomSpeed={0.9}
+        rotateSpeed={0.8}
+        panSpeed={0.8}
         makeDefault
       />
     </>
@@ -938,22 +960,27 @@ export default function EnhancedDormViewer({
   autoRotate = false,
   onResetView
 }: EnhancedDormViewerProps) {
+  const cameraConfig = useMemo(
+    () => ({
+      position: [12, 8, 12] as [number, number, number],
+      fov: 65,
+      near: 0.5,
+      far: 60,
+    }),
+    []
+  );
+
   return (
     <div
-      className="relative h-full w-full min-h-[500px] bg-[#0a1128] rounded-xl overflow-hidden touch-none"
-      onWheel={(event) => {
+      className="relative h-full w-full min-h-[500px] bg-[#0a1128] rounded-xl overflow-hidden touch-none overscroll-contain"
+      onWheelCapture={(event) => {
         event.preventDefault();
       }}
     >
       <Suspense fallback={<LoadingScreen />}>
         <Canvas
           shadows={showShadows}
-          camera={{
-            position: [12, 8, 12],
-            fov: 65,
-            near: 0.5,
-            far: 60,
-          }}
+          camera={cameraConfig}
           gl={{ antialias: true }}
           onPointerMissed={() => onSelect(null)}
         >
