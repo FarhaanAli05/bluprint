@@ -1,4 +1,4 @@
-# uofthacks-13
+# Blueprint, built at UofTHacks13
 # 3D Model Room Importer Extension
 
 
